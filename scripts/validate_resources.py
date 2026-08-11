@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
+from collections import Counter
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
@@ -49,6 +51,15 @@ MODEL_FIELDS = {
     "approved_use",
     "limitations",
 }
+DEMO_FIELDS = {
+    "sample_id", "locale", "question", "category", "source_id", "split",
+    "paraphrase_family_id", "authoring_method", "translation_status",
+    "review_status", "reviewer_name", "reviewer_role", "reviewed_at", "safety_class",
+}
+EXPECTED_CATEGORIES = {
+    "antenatal-appointments", "birth-place-choices", "labour-preparation",
+    "pain-relief-information", "after-birth-postnatal", "feeding-support",
+}
 APPROVED_DOMAINS = {
     "digital.nhs.uk",
     "realbirthcompany.com",
@@ -86,13 +97,19 @@ def require_unique(rows: list[dict[str, str]], key: str, filename: str) -> None:
         raise ValueError(f"{filename}: duplicate {key}: {duplicates}")
 
 
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def validate() -> None:
     sources = read_csv(RESOURCES / "source_registry.csv", SOURCE_FIELDS)
     questions = read_csv(RESOURCES / "question_candidates.csv", QUESTION_FIELDS)
     models = read_csv(RESOURCES / "model_registry.csv", MODEL_FIELDS)
+    demo = read_csv(RESOURCES / "demo_samples.csv", DEMO_FIELDS)
     require_unique(sources, "source_id", "source_registry.csv")
     require_unique(questions, "question_id", "question_candidates.csv")
     require_unique(models, "model_id", "model_registry.csv")
+    require_unique(demo, "sample_id", "demo_samples.csv")
 
     source_ids = {row["source_id"] for row in sources}
     for source in sources:
@@ -157,6 +174,70 @@ def validate() -> None:
                 f"{identifier}: acquired models require a pinned revision and known licence"
             )
 
+    if len(demo) != 144:
+        raise ValueError(f"demo_samples.csv: expected exactly 144 rows, found {len(demo)}")
+    counts = Counter((row["locale"], row["category"], row["split"]) for row in demo)
+    expected_counts = Counter({
+        (locale, category, split): count
+        for locale in ("en", "ckb")
+        for category in EXPECTED_CATEGORIES
+        for split, count in {"train": 10, "visible": 1, "hidden": 1}.items()
+    })
+    if counts != expected_counts:
+        raise ValueError(f"demo_samples.csv: invalid locale/category/split distribution: {dict(counts)}")
+    for row in demo:
+        identifier = row["sample_id"]
+        if row["source_id"] not in source_ids:
+            raise ValueError(f"{identifier}: unknown source_id")
+        if not row["question"].strip() or not row["paraphrase_family_id"].strip():
+            raise ValueError(f"{identifier}: question and paraphrase family are required")
+        if row["safety_class"] != "educational":
+            raise ValueError(f"{identifier}: curated demo content must be educational")
+        if row["locale"] == "ckb" and row["review_status"] == "approved":
+            if row["translation_status"] != "human_reviewed":
+                raise ValueError(f"{identifier}: approved Sorani text must be human reviewed")
+        if row["review_status"] == "approved" and not all(
+            row[field].strip() for field in ("reviewer_name", "reviewer_role", "reviewed_at")
+        ):
+            raise ValueError(f"{identifier}: approved demo rows require complete review attribution")
+    for locale in ("en", "ckb"):
+        for category in EXPECTED_CATEGORIES:
+            grouped = [row for row in demo if row["locale"] == locale and row["category"] == category]
+            training_families = {row["paraphrase_family_id"] for row in grouped if row["split"] == "train"}
+            fixture_families = {row["paraphrase_family_id"] for row in grouped if row["split"] != "train"}
+            if training_families & fixture_families:
+                raise ValueError(f"demo_samples.csv: paraphrase-family leakage for {locale}/{category}")
+
+    review_path = ROOT / "governance" / "demo_review_manifest.json"
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    if review.get("schema_version") != 1 or review.get("decision") not in {
+        "changes_required", "approved", "rejected",
+    }:
+        raise ValueError("demo review manifest: invalid schema or decision")
+    dataset_path = ROOT / review["dataset_file"]
+    interface_path = ROOT / review["interface_file"]
+    if review.get("dataset_sha256") != sha256_file(dataset_path):
+        raise ValueError("demo review manifest: dataset checksum mismatch")
+    if review.get("interface_sha256") != sha256_file(interface_path):
+        raise ValueError("demo review manifest: interface checksum mismatch")
+    if review["decision"] == "approved":
+        if not all(review.get(field) for field in ("reviewer_name", "reviewer_role", "reviewed_at")):
+            raise ValueError("demo review manifest: approval evidence is incomplete")
+        if any(row["review_status"] != "approved" for row in demo):
+            raise ValueError("demo review manifest: approval requires every demo row to be approved")
+
+    signoffs = json.loads((ROOT / "governance" / "review_signoffs.json").read_text(encoding="utf-8"))
+    if signoffs.get("schema_version") != 1:
+        raise ValueError("review signoffs: unsupported schema version")
+    gates = {row.get("gate") for row in signoffs.get("signoffs", [])}
+    if not {"sorani_language", "curated_demo_sorani", "clinical_safety"}.issubset(gates):
+        raise ValueError("review signoffs: required gates are missing")
+    for signoff in signoffs["signoffs"]:
+        if signoff.get("evidence_checksum"):
+            evidence = ROOT / signoff["evidence_file"]
+            if not evidence.exists() or sha256_file(evidence) != signoff["evidence_checksum"]:
+                raise ValueError(f"review signoffs: evidence mismatch for {signoff['gate']}")
+
     safety_template = json.loads((RESOURCES / "safety_bypass_rules.template.json").read_text(encoding="utf-8"))
     if safety_template.get("schema_version") != 1:
         raise ValueError("safety rules: unsupported schema_version")
@@ -173,6 +254,7 @@ def validate() -> None:
     print(f"Validated {len(sources)} registered sources")
     print(f"Validated {len(questions)} candidate questions ({sorani} Sorani)")
     print(f"Validated {len(models)} model decisions")
+    print(f"Validated {len(demo)} curated demo questions")
     print(f"Training-eligible questions: {eligible}")
     print("Governance validation passed")
 

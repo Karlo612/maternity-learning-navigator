@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "decision": "changes_required",
+  "reviewer_name": "Karlo Nahro",
+  "reviewer_role": "Native Sorani speaker and professional translator",
+  "reviewed_at": null,
+  "dataset_file": "resources/demo_samples.csv",
+  "dataset_sha256": "17a50cafd40f1ba960495542f288e136819f66f2b83f9bd1dbb2afea32bfbba7",
+  "interface_file": "app/resources/js/interface-catalog.json",
+  "interface_sha256": "91a9887fbd6e173475aa4fddf1d8741521718afc606ee744c6ada3142dc63224",
+  "decision_notes": "Machine-assisted Sorani drafts are prepared for exact-text review. Training and public demo serving remain blocked until the decision is approved and every Sorani row is marked human_reviewed."
+}
