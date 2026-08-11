@@ -57,8 +57,16 @@ class TransformerRouter:
 
 
 class ModelRegistry:
-    def __init__(self, artifact_dir: Path):
+    def __init__(
+        self,
+        artifact_dir: Path,
+        *,
+        expected_mode: str = "production",
+        required_release_status: str = "approved",
+    ):
         self.artifact_dir = artifact_dir
+        self.expected_mode = expected_mode
+        self.required_release_status = required_release_status
         self.manifest: dict = {}
         self.router: Router | None = None
         self.safety_phrases: dict[str, list[str]] = {}
@@ -73,14 +81,21 @@ class ModelRegistry:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("schema_version") != 1:
             raise ArtifactError("Model manifest schema is unsupported.")
+        intended_mode = manifest.get("intended_mode", "production")
+        if intended_mode != self.expected_mode:
+            raise ArtifactError(
+                f"Model artifact is intended for {intended_mode}, not {self.expected_mode}."
+            )
         artifact_path = self.artifact_dir / manifest["artifact"]
         if not artifact_path.exists():
             raise ArtifactError("Model artifact is missing.")
         actual = sha256_path(artifact_path)
         if actual != manifest["sha256"]:
             raise ArtifactError("Model artifact checksum does not match the signed manifest.")
-        if manifest.get("release_status") != "approved":
-            raise ArtifactError("Model manifest is not approved for serving.")
+        if manifest.get("release_status") != self.required_release_status:
+            raise ArtifactError(
+                f"Model manifest requires release status {self.required_release_status}."
+            )
         if manifest.get("model_id") == "xlm-roberta-base":
             bundle_path = artifact_path / "navigator_bundle.json"
             if not bundle_path.exists():
@@ -106,7 +121,8 @@ class ModelRegistry:
 
     @property
     def model_id(self) -> str:
-        return self.manifest.get("model_id", "baseline-tfidf-logreg")
+        fallback = "demo-tfidf-logreg" if self.expected_mode == "curated_demo" else "baseline-tfidf-logreg"
+        return self.manifest.get("model_id", fallback)
 
     @property
     def model_version(self) -> str:

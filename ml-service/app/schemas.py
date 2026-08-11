@@ -16,9 +16,16 @@ class ExplanationRequest(ClassificationRequest):
     model_version: str = Field(min_length=1, max_length=100)
 
 
+class FeatureOccurrence(BaseModel):
+    start: int = Field(ge=0)
+    end: int = Field(gt=0)
+
+
 class FeatureWeight(BaseModel):
     token: str
     weight: float
+    direction: Literal["supporting", "opposing"]
+    occurrences: list[FeatureOccurrence]
 
 
 class ClassificationResponse(BaseModel):
@@ -30,7 +37,17 @@ class ClassificationResponse(BaseModel):
     model_version: str
 
 
+class DemoClassificationResponse(ClassificationResponse):
+    demo_only: Literal[True] = True
+
+
 class ExplanationResponse(BaseModel):
     model_id: str
     model_version: str
+    predicted_class: str
+    explained_class: str
+    probability: float = Field(ge=0, le=1)
+    random_seed: int
+    num_samples: int
+    demo_only: bool = False
     features: list[FeatureWeight]

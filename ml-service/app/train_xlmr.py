@@ -141,7 +141,7 @@ def train(dataset: Path, safety_rules: Path, output: Path, revision: str) -> Non
         "split_counts": {"train": len(train_frame), "validation": len(validation_frame), "test": len(test_frame)},
         "limitations": "Sorani feasibility evidence is not maternity-domain validation. Human and metric review are required before serving.",
     }
-    (output / "xlmr-manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    (output / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":
