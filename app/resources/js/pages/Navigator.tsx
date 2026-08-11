@@ -17,7 +17,7 @@ const navigation = [['/','Navigator'],['/sources','Sources'],['/how-it-works','H
 
 function AppHeader({locale,setLocale}:{locale:string;setLocale:(value:string)=>void}) {
     const path=window.location.pathname;
-    return <><div className="status-strip"><div className="container"><span className="status-dot"/>Review-gated portfolio prototype — public free-text routing is not yet released</div></div><header className="site-header"><div className="container nav-row">
+    return <><div className="status-strip"><div className="container"><span className="status-dot"/>Portfolio demonstration · Curated source browsing is available · Model routing awaits independent review</div></div><header className="site-header"><div className="container nav-row">
         <a className="brand" href="/"><span className="brand-mark"><Route size={19}/></span><span>Maternity Learning Navigator</span></a>
         <nav className="nav-links" aria-label="Primary navigation">{navigation.map(([href,label])=><a className="nav-link" aria-current={path===href?'page':undefined} href={href} key={href}>{label}</a>)}</nav>
         <label className="sr-only" htmlFor="language">Question language</label><select id="language" className="language-select" value={locale} onChange={e=>setLocale(e.target.value)}><option value="en">English</option><option value="ckb">Kurdish Sorani · review pending</option></select>

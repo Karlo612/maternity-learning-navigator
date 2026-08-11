@@ -31,6 +31,14 @@ class NavigatorApiTest extends TestCase
         $response->assertJsonPath('data.0.organisation', fn (string $value) => $value !== '');
     }
 
+    public function test_human_readable_api_documentation_page_is_not_shadowed_by_api_routes(): void
+    {
+        $this->get('/api-docs')->assertOk();
+        $this->get('/api/v1/openapi.json')
+            ->assertOk()
+            ->assertJsonPath('info.title', 'Maternity Learning Navigator API');
+    }
+
     public function test_free_text_fails_closed_while_human_reviews_are_pending(): void
     {
         config()->set('governance.free_text_enabled', true);
