@@ -1,0 +1,9 @@
+.git
+app/vendor
+app/node_modules
+app/storage/logs/*
+app/database/database.sqlite
+ml-service/.pytest_cache
+ml-service/__pycache__
+**/__pycache__
+models
