@@ -67,12 +67,12 @@ Requested changes: None
 
 Decision date: 11 August 2026
 
-Approval scope: Project-owner governance decision only. No Sorani-language or clinical-safety competence was asserted, so neither independent release gate is satisfied by this decision.
+Approval scope: Project-owner governance decision only. The project owner subsequently declared competence as a native Sorani speaker and professional translator; that declaration and its deliberately limited review decision are recorded separately in `SORANI_LANGUAGE_REVIEW_SIGNOFF.md`. No clinical-safety competence was asserted.
 
 ## Independent sign-offs still required
 
 Project-owner agreement cannot release the data unless the project owner also has the relevant competence and records it transparently. The following remain separate:
 
-- A qualified Sorani reviewer must verify every Sorani question, category label, interface string, safety message, terminology choice and bidirectional presentation.
+- The identified Sorani reviewer must still verify every replacement Sorani question, category label, interface string, safety message, terminology choice and bidirectional presentation before changing the language decision from `changes_required` to `approved`.
 - A qualified clinical-safety reviewer must review the boundary, hazard log, safety-bypass phrases, urgent-capable examples and public safety wording.
 - Each sign-off must name the reviewed dataset checksum, interface/build version, decision, limitations, date and independently verifiable evidence reference using `governance/REVIEW_SIGNOFF_TEMPLATE.md`.
