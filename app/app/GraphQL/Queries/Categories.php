@@ -14,7 +14,7 @@ final class Categories
             ->map(fn (Category $category) => [
                 'slug' => $category->slug,
                 'label' => $category->labelFor($locale),
-                'description' => $category->description_en,
+                'description' => $category->descriptionFor($locale),
             ])->all();
     }
 }

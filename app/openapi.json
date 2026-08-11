@@ -2,43 +2,120 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Maternity Learning Navigator API",
-    "version": "1.0.0-review-gated",
-    "description": "Educational resource routing only. This API does not provide diagnosis, triage, treatment or outcome prediction."
+    "version": "1.1.0-curated-demo",
+    "description": "A portfolio demonstration of PHP, MySQL, Python model serving and LIME. Curated endpoints accept only governed sample IDs. Production free-text routing remains review-gated. No endpoint provides diagnosis, triage, treatment or outcome prediction."
   },
-  "servers": [{"url": "/api/v1"}],
+  "servers": [{ "url": "/api/v1" }],
+  "tags": [
+    { "name": "Curated demo", "description": "Fixed, checksum-reviewed portfolio fixtures. These routes never unlock production free text." },
+    { "name": "Production gated", "description": "Unrestricted input contracts retained behind the full release gate." },
+    { "name": "Evidence", "description": "Read-only provenance, governance and service state." }
+  ],
   "paths": {
+    "/health": {
+      "get": { "tags": ["Evidence"], "summary": "Read application, database, model and governance health", "responses": { "200": { "$ref": "#/components/responses/JsonSuccess" }, "503": { "$ref": "#/components/responses/Unavailable" } } }
+    },
+    "/resources": {
+      "get": {
+        "tags": ["Evidence"], "summary": "List registered source metadata with explicit locale fallback",
+        "parameters": [
+          { "name": "category", "in": "query", "schema": { "$ref": "#/components/schemas/CategorySlug" } },
+          { "$ref": "#/components/parameters/Locale" }
+        ],
+        "responses": { "200": { "description": "Registered link metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceList" } } } }, "422": { "$ref": "#/components/responses/Validation" } }
+      }
+    },
+    "/model-card": {
+      "get": { "tags": ["Evidence"], "summary": "Read intended uses, exclusions, limitations and release state", "responses": { "200": { "$ref": "#/components/responses/JsonSuccess" } } }
+    },
+    "/openapi.json": {
+      "get": { "tags": ["Evidence"], "summary": "Download this OpenAPI 3.1 contract", "responses": { "200": { "description": "OpenAPI document" } } }
+    },
+    "/demo/samples": {
+      "get": {
+        "tags": ["Curated demo"], "summary": "List approved recruiter-visible samples",
+        "parameters": [{ "$ref": "#/components/parameters/RequiredLocale" }],
+        "responses": {
+          "200": { "description": "Approved visible samples, or an empty list while review is open", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoSampleList" } } } },
+          "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" }
+        }
+      }
+    },
+    "/demo/classifications": {
+      "post": {
+        "tags": ["Curated demo"], "summary": "Route one approved fixed sample through Laravel and private FastAPI",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoClassificationInput" }, "example": { "sample_id": "en-antenatal-11" } } } },
+        "responses": {
+          "200": { "description": "Fixture matched its reviewed category", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoClassification" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }, "409": { "$ref": "#/components/responses/Conflict" }, "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" }, "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/demo/classifications/{requestId}/explanation": {
+      "post": {
+        "tags": ["Curated demo"], "summary": "Generate transient predicted-class LIME for the original demo event",
+        "parameters": [{ "$ref": "#/components/parameters/RequestId" }],
+        "requestBody": { "required": false, "content": { "application/json": { "schema": { "type": "object", "maxProperties": 0 } } } },
+        "responses": {
+          "200": { "description": "Local approximate explanation", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoExplanation" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }, "409": { "$ref": "#/components/responses/Conflict" }, "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" }, "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
     "/classifications": {
       "post": {
-        "summary": "Route an English or reviewed Sorani question",
-        "requestBody": {
-          "required": true,
-          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ClassificationInput"}}}
-        },
-        "responses": {"200": {"description": "Routing result or review-gate response"}}
+        "tags": ["Production gated"], "summary": "Attempt production free-text routing (currently fails closed)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClassificationInput" } } } },
+        "responses": { "200": { "description": "Release-gate response or future production result" }, "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     },
     "/classifications/{requestId}/explanation": {
       "post": {
-        "summary": "Explain the original routing decision with LIME",
-        "parameters": [{"name": "requestId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}}],
-        "responses": {"200": {"description": "Transient local feature weights"}}
+        "tags": ["Production gated"], "summary": "Explain a future production routing event",
+        "parameters": [{ "$ref": "#/components/parameters/RequestId" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["question"], "additionalProperties": false, "properties": { "question": { "type": "string", "minLength": 3, "maxLength": 500 } } } } } },
+        "responses": { "200": { "description": "Transient explanation" }, "409": { "$ref": "#/components/responses/Conflict" }, "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     },
-    "/resources": {"get": {"summary": "List registered resources", "responses": {"200": {"description": "Source records"}}}},
-    "/model-card": {"get": {"summary": "Read model status, limits and release gates", "responses": {"200": {"description": "Model card"}}}},
-    "/feedback": {"post": {"summary": "Store fixed-choice feedback without free text", "responses": {"200": {"description": "Stored"}}}},
-    "/health": {"get": {"summary": "Application and model-service health", "responses": {"200": {"description": "Health status"}}}}
+    "/feedback": {
+      "post": {
+        "tags": ["Evidence"], "summary": "Store fixed-choice feedback without a free-text field",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FeedbackInput" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/JsonSuccess" }, "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" } }
+      }
+    }
   },
   "components": {
+    "parameters": {
+      "Locale": { "name": "locale", "in": "query", "schema": { "$ref": "#/components/schemas/Locale", "default": "en" } },
+      "RequiredLocale": { "name": "locale", "in": "query", "required": true, "schema": { "$ref": "#/components/schemas/Locale" } },
+      "RequestId": { "name": "requestId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+    },
+    "responses": {
+      "JsonSuccess": { "description": "Successful JSON response", "content": { "application/json": { "schema": { "type": "object" } } } },
+      "Validation": { "description": "Validation failed; arbitrary question fields are rejected by demo routes", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "message": "The question field is prohibited.", "errors": { "question": ["The question field is prohibited."] } } } } },
+      "NotFound": { "description": "The sample or routing event is absent or not approved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Conflict": { "description": "Fixture, explained class or requested model version conflicts with the released event", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "demo_only": true, "reason": "explained_class_mismatch", "message": "The explanation did not match the released routing class and was rejected." } } } },
+      "Throttled": { "description": "Per-IP rate limit exceeded", "headers": { "Retry-After": { "schema": { "type": "integer" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Unavailable": { "description": "The required private model or model version is unavailable", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "demo_only": true, "reason": "model_service_unavailable", "message": "The demonstration model is unavailable, so no routing result was released." } } } }
+    },
     "schemas": {
-      "ClassificationInput": {
-        "type": "object",
-        "required": ["question", "locale"],
-        "properties": {
-          "question": {"type": "string", "minLength": 3, "maxLength": 500},
-          "locale": {"type": "string", "enum": ["en", "ckb"]}
-        }
-      }
+      "Locale": { "type": "string", "enum": ["en", "ckb"] },
+      "CategorySlug": { "type": "string", "enum": ["antenatal-appointments", "birth-place-choices", "labour-preparation", "pain-relief-information", "after-birth-postnatal", "feeding-support"] },
+      "Error": { "type": "object", "properties": { "message": { "type": "string" }, "reason": { "type": "string" }, "demo_only": { "type": "boolean" }, "errors": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } } } },
+      "ClassificationInput": { "type": "object", "required": ["question", "locale"], "additionalProperties": false, "properties": { "question": { "type": "string", "minLength": 3, "maxLength": 500 }, "locale": { "$ref": "#/components/schemas/Locale" } } },
+      "DemoClassificationInput": { "type": "object", "required": ["sample_id"], "additionalProperties": false, "properties": { "sample_id": { "type": "string", "maxLength": 80 } } },
+      "DemoSample": { "type": "object", "required": ["sample_id", "question", "category", "content_checksum"], "properties": { "sample_id": { "type": "string" }, "question": { "type": "string", "description": "Governed application content, not user input." }, "category": { "$ref": "#/components/schemas/Category" }, "content_checksum": { "type": "string", "pattern": "^[a-f0-9]{64}$" } } },
+      "DemoSampleList": { "type": "object", "required": ["demo_only", "locale", "review_status", "data"], "properties": { "demo_only": { "const": true }, "locale": { "$ref": "#/components/schemas/Locale" }, "review_status": { "type": "string" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/DemoSample" } } } },
+      "Category": { "type": "object", "required": ["slug", "label"], "properties": { "slug": { "$ref": "#/components/schemas/CategorySlug" }, "label": { "type": "string" } } },
+      "Source": { "type": "object", "required": ["id", "organisation", "title", "url", "language", "last_verified"], "properties": { "id": { "type": "string" }, "organisation": { "type": "string" }, "title": { "type": "string" }, "url": { "type": "string", "format": "uri" }, "language": { "type": "string" }, "requested_locale": { "$ref": "#/components/schemas/Locale" }, "locale_match": { "type": "boolean" }, "fallback_used": { "type": "boolean" }, "availability_note": { "type": "string" }, "last_verified": { "type": "string", "format": "date" } } },
+      "ResourceList": { "type": "object", "required": ["requested_locale", "data"], "properties": { "requested_locale": { "$ref": "#/components/schemas/Locale" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } } } },
+      "ModelReference": { "type": "object", "required": ["id", "version"], "properties": { "id": { "type": "string" }, "version": { "type": "string" } } },
+      "DemoClassification": { "type": "object", "required": ["request_id", "demo_only", "status", "sample", "category", "model", "resources", "explanation_available"], "properties": { "request_id": { "type": "string", "format": "uuid" }, "demo_only": { "const": true }, "status": { "const": "matched" }, "sample": { "$ref": "#/components/schemas/DemoSample" }, "category": { "$ref": "#/components/schemas/Category" }, "routing_confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "confidence_band": { "type": "string" }, "model": { "$ref": "#/components/schemas/ModelReference" }, "resources": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } }, "explanation_available": { "const": true } } },
+      "FeatureOccurrence": { "type": "object", "required": ["start", "end"], "properties": { "start": { "type": "integer", "minimum": 0 }, "end": { "type": "integer", "minimum": 1 } } },
+      "LimeFeature": { "type": "object", "required": ["token", "weight", "direction", "occurrences"], "properties": { "token": { "type": "string" }, "weight": { "type": "number" }, "direction": { "type": "string", "enum": ["supporting", "opposing"] }, "occurrences": { "type": "array", "items": { "$ref": "#/components/schemas/FeatureOccurrence" } } } },
+      "DemoExplanation": { "type": "object", "required": ["request_id", "demo_only", "method", "predicted_class", "explained_class", "model", "sampling", "features", "disclaimer"], "properties": { "request_id": { "type": "string", "format": "uuid" }, "demo_only": { "const": true }, "method": { "const": "LIME" }, "sample": { "$ref": "#/components/schemas/DemoSample" }, "predicted_class": { "$ref": "#/components/schemas/CategorySlug" }, "explained_class": { "$ref": "#/components/schemas/CategorySlug" }, "probability": { "type": "number", "minimum": 0, "maximum": 1 }, "model": { "$ref": "#/components/schemas/ModelReference" }, "sampling": { "type": "object", "required": ["random_seed", "num_samples", "max_features"], "properties": { "random_seed": { "const": 41 }, "num_samples": { "const": 1000 }, "max_features": { "const": 8 } } }, "features": { "type": "array", "maxItems": 8, "items": { "$ref": "#/components/schemas/LimeFeature" } }, "disclaimer": { "type": "string" } } },
+      "FeedbackInput": { "type": "object", "required": ["request_id", "helpful"], "additionalProperties": false, "properties": { "request_id": { "type": "string", "format": "uuid" }, "helpful": { "type": "boolean" }, "reason_code": { "type": ["string", "null"], "enum": ["wrong_topic", "source_not_useful", "explanation_unclear", null] } } }
     }
   }
 }

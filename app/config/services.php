@@ -5,7 +5,7 @@ return [
     'ml' => [
         'url' => env('ML_SERVICE_URL', 'http://ml:8000'),
         'token' => env('ML_SERVICE_TOKEN'),
-        'timeout_seconds' => (int) env('ML_SERVICE_TIMEOUT', 12),
+        'timeout_seconds' => (int) env('ML_SERVICE_TIMEOUT', 15),
     ],
 
     /*

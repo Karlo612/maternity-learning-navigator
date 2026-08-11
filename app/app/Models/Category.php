@@ -32,4 +32,15 @@ class Category extends Model
             ->first(fn (CategoryTranslation $translation) => $translation->locale === $locale && $translation->review_status === 'approved')
             ?->label ?? $this->label_en;
     }
+
+    public function descriptionFor(string $locale): string
+    {
+        if ($locale === 'en') {
+            return $this->description_en;
+        }
+
+        return $this->translations
+            ->first(fn (CategoryTranslation $translation) => $translation->locale === $locale && $translation->review_status === 'approved')
+            ?->description ?? $this->description_en;
+    }
 }

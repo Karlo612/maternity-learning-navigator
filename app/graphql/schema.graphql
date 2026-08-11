@@ -21,6 +21,10 @@ type Source {
   title: String!
   url: String!
   language: String!
+  requestedLocale: String!
+  localeMatch: Boolean!
+  fallbackUsed: Boolean!
+  availabilityNote: String!
   category: String!
   reuseStatus: String!
   lastVerified: String!

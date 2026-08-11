@@ -26,6 +26,7 @@ class ClassificationController extends Controller
         if (! $release['free_text_enabled']) {
             $event = RoutingEvent::query()->create([
                 'request_id' => $requestId,
+                'mode' => 'production',
                 'locale' => $locale,
                 'status' => 'unsupported',
                 'question_fingerprint' => $this->fingerprint($question),
@@ -69,6 +70,7 @@ class ClassificationController extends Controller
 
         $event = RoutingEvent::query()->create([
             'request_id' => $requestId,
+            'mode' => 'production',
             'category_id' => $category?->id,
             'model_version_id' => $model?->id,
             'locale' => $locale,

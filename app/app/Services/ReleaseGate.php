@@ -24,6 +24,7 @@ class ReleaseGate
                     ? 'approved'
                     : ($signoff?->status === 'approved' ? 'incomplete_evidence' : ($signoff?->status ?? 'missing')),
                 'reviewer_role' => $signoff?->reviewer_role,
+                'reviewer_name' => $signoff?->reviewer_name,
                 'evidence_recorded' => $complete,
             ];
         })->values();
@@ -36,8 +37,11 @@ class ReleaseGate
             ->whereNotNull('released_at')
             ->latest('id')
             ->first();
-        $currentModel = ModelVersion::query()->orderByDesc('serving_default')->latest('id')->first();
+        $currentModel = ModelVersion::query()
+            ->where('model_id', '!=', 'demo-tfidf-logreg')
+            ->orderByDesc('serving_default')->latest('id')->first();
         $model = ModelVersion::query()
+            ->where('model_id', '!=', 'demo-tfidf-logreg')
             ->where('status', 'approved')
             ->where('serving_default', true)
             ->whereNotNull('artifact_checksum')

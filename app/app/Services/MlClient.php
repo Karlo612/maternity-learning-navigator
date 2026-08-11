@@ -38,4 +38,22 @@ class MlClient
             'model_version' => $modelVersion,
         ])->throw()->json();
     }
+
+    public function classifyDemo(string $question, string $locale): array
+    {
+        return $this->client()->post('/v1/demo/classify', [
+            'question' => $question,
+            'locale' => $locale,
+        ])->throw()->json();
+    }
+
+    public function explainDemo(string $question, string $locale, string $modelId, string $modelVersion): array
+    {
+        return $this->client()->post('/v1/demo/explain', [
+            'question' => $question,
+            'locale' => $locale,
+            'model_id' => $modelId,
+            'model_version' => $modelVersion,
+        ])->throw()->json();
+    }
 }

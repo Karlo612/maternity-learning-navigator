@@ -3,10 +3,14 @@
 namespace App\Services;
 
 use App\Models\Category;
+use App\Models\CategoryTranslation;
 use App\Models\DatasetVersion;
+use App\Models\DemoSample;
 use App\Models\ModelVersion;
 use App\Models\ReviewSignoff;
 use App\Models\Source;
+use Illuminate\Support\Carbon;
+use JsonException;
 use RuntimeException;
 
 class GovernanceImporter
@@ -20,101 +24,130 @@ class GovernanceImporter
         'feeding-support' => ['NHS-010', 'NHS-011'],
     ];
 
-    private const CATEGORIES = [
-        ['antenatal-appointments', 'Antenatal appointments', 'Find registered information about antenatal care and appointments.'],
-        ['birth-place-choices', 'Birth-place choices', 'Find registered information about options to discuss with a maternity team.'],
-        ['labour-preparation', 'Labour preparation', 'Find registered learning resources about labour and birth preparation.'],
-        ['pain-relief-information', 'Pain-relief information', 'Find registered resources describing pain-relief information.'],
-        ['after-birth-postnatal', 'After birth and postnatal', 'Find registered information about the period after birth and postnatal checks.'],
-        ['feeding-support', 'Feeding support', 'Find registered breastfeeding and bottle-feeding support resources.'],
-    ];
-
+    /** @throws JsonException */
     public function import(): void
     {
-        foreach (self::CATEGORIES as [$slug, $label, $description]) {
-            Category::query()->updateOrCreate(
+        $resources = rtrim((string) config('governance.resources_path'), '/');
+        $demoReview = $this->readJson((string) config('governance.demo_review_path'));
+        $catalog = $this->readJson((string) config('governance.interface_catalog_path'));
+        $translationApproved = ($demoReview['decision'] ?? null) === 'approved';
+
+        foreach ($catalog['en']['categories'] as $slug => $english) {
+            $category = Category::query()->updateOrCreate(
                 ['slug' => $slug],
-                ['label_en' => $label, 'description_en' => $description, 'active' => true],
+                ['label_en' => $english['label'], 'description_en' => $english['description'], 'active' => true],
             );
-        }
-
-        $path = rtrim((string) config('governance.resources_path'), '/').'/source_registry.csv';
-        $handle = fopen($path, 'rb');
-        if ($handle === false) {
-            throw new RuntimeException("Unable to read governance source registry at {$path}");
-        }
-
-        $headers = fgetcsv($handle);
-        if ($headers === false) {
-            throw new RuntimeException('The source registry is empty.');
-        }
-
-        while (($values = fgetcsv($handle)) !== false) {
-            $row = array_combine($headers, $values);
-            if ($row === false) {
-                throw new RuntimeException('The source registry contains a malformed row.');
+            $sorani = $catalog['ckb']['categories'][$slug] ?? null;
+            if (is_array($sorani)) {
+                CategoryTranslation::query()->updateOrCreate(
+                    ['category_id' => $category->id, 'locale' => 'ckb'],
+                    [
+                        'label' => $sorani['label'],
+                        'description' => $sorani['description'],
+                        'review_status' => $translationApproved ? 'approved' : 'pending',
+                        'reviewed_at' => $translationApproved ? $demoReview['reviewed_at'] : null,
+                    ],
+                );
             }
+        }
 
+        $this->importSources($resources.'/source_registry.csv');
+        $this->importDatasetState($resources.'/question_candidates.csv');
+        $this->connectCategorySources();
+        $this->importDemoSamples($resources.'/demo_samples.csv');
+        $this->importModelDecisions();
+        $this->importSignoffs((string) config('governance.signoffs_path'));
+    }
+
+    private function importSources(string $path): void
+    {
+        foreach ($this->readCsv($path) as $row) {
             Source::query()->updateOrCreate(
                 ['source_id' => $row['source_id']],
                 collect($row)->except('source_id')->all(),
             );
         }
-        fclose($handle);
+    }
 
-        $datasetPath = rtrim((string) config('governance.resources_path'), '/').'/question_candidates.csv';
-        $datasetChecksum = hash_file('sha256', $datasetPath);
-        if ($datasetChecksum === false) {
-            throw new RuntimeException("Unable to checksum governed dataset at {$datasetPath}");
+    private function importDatasetState(string $path): void
+    {
+        $checksum = hash_file('sha256', $path);
+        if ($checksum === false) {
+            throw new RuntimeException("Unable to checksum governed dataset at {$path}");
         }
-        $datasetHandle = fopen($datasetPath, 'rb');
-        if ($datasetHandle === false) {
-            throw new RuntimeException("Unable to read governed dataset at {$datasetPath}");
-        }
-        $datasetHeaders = fgetcsv($datasetHandle);
-        if ($datasetHeaders === false) {
-            throw new RuntimeException('The governed dataset is empty.');
-        }
-        $eligibleRows = 0;
-        $candidateRows = 0;
-        while (($values = fgetcsv($datasetHandle)) !== false) {
-            $row = array_combine($datasetHeaders, $values);
-            $candidateRows++;
-            if ($row !== false && ($row['training_eligible'] ?? 'false') === 'true') {
-                $eligibleRows++;
-            }
-        }
-        fclose($datasetHandle);
-        DatasetVersion::query()->firstOrCreate(
-            ['version' => 'registry-'.substr($datasetChecksum, 0, 12)],
+        $rows = $this->readCsv($path);
+        $eligible = collect($rows)->where('training_eligible', 'true')->count();
+        DatasetVersion::query()->updateOrCreate(
+            ['version' => 'registry-'.substr($checksum, 0, 12)],
             [
-                'checksum' => $datasetChecksum,
-                'eligible_rows' => $eligibleRows,
+                'checksum' => $checksum,
+                'eligible_rows' => $eligible,
                 'status' => 'review_locked',
-                'metrics' => ['candidate_rows' => $candidateRows, 'required_training_rows' => 600],
+                'metrics' => ['candidate_rows' => count($rows), 'required_training_rows' => 600],
             ],
         );
+    }
 
+    private function connectCategorySources(): void
+    {
         foreach (self::CATEGORY_SOURCES as $slug => $sourceIds) {
             $category = Category::query()->where('slug', $slug)->firstOrFail();
-            $sync = Source::query()
-                ->whereIn('source_id', $sourceIds)
-                ->get()
+            $sync = Source::query()->whereIn('source_id', $sourceIds)->get()
                 ->mapWithKeys(fn (Source $source, int $index) => [$source->id => ['display_order' => $index]])
                 ->all();
             $category->sources()->sync($sync);
         }
+    }
 
-        ModelVersion::query()->firstOrCreate(
-            ['model_id' => 'baseline-tfidf-logreg', 'version' => 'review-gated'],
+    private function importDemoSamples(string $path): void
+    {
+        foreach ($this->readCsv($path) as $row) {
+            $category = Category::query()->where('slug', $row['category'])->firstOrFail();
+            $source = Source::query()->where('source_id', $row['source_id'])->firstOrFail();
+            DemoSample::query()->updateOrCreate(
+                ['sample_id' => $row['sample_id']],
+                [
+                    'category_id' => $category->id,
+                    'source_id' => $source->id,
+                    'locale' => $row['locale'],
+                    'question' => $row['question'],
+                    'split' => $row['split'],
+                    'paraphrase_family_id' => $row['paraphrase_family_id'],
+                    'authoring_method' => $row['authoring_method'],
+                    'translation_status' => $row['translation_status'],
+                    'review_status' => $row['review_status'],
+                    'reviewer_name' => $row['reviewer_name'] ?: null,
+                    'reviewer_role' => $row['reviewer_role'] ?: null,
+                    'reviewed_at' => $row['reviewed_at'] ? Carbon::parse($row['reviewed_at']) : null,
+                    'content_checksum' => hash('sha256', implode("\x1f", [
+                        $row['sample_id'], $row['locale'], $row['question'], $row['category'], $row['source_id'],
+                    ])),
+                ],
+            );
+        }
+    }
+
+    private function importModelDecisions(): void
+    {
+        ModelVersion::query()->updateOrCreate(
+            ['model_id' => 'demo-tfidf-logreg', 'version' => 'review-pending'],
             [
-                'role' => 'Interpretable multilingual routing baseline',
+                'role' => 'Curated bilingual portfolio demonstration router',
                 'status' => 'not_trained',
-                'limitations' => 'No project-specific performance claim is permitted until reviewed bilingual data passes the release gates.',
+                'limitations' => 'Fixed reviewed samples only. Fixture checks will not be presented as a general accuracy estimate.',
                 'serving_default' => false,
             ],
         );
-        ModelVersion::query()->firstOrCreate(
+        ModelVersion::query()->updateOrCreate(
+            ['model_id' => 'baseline-tfidf-logreg', 'version' => 'review-gated'],
+            [
+                'role' => 'Production multilingual routing baseline',
+                'status' => 'not_trained',
+                'limitations' => 'No project-specific performance claim is permitted until reviewed bilingual production data passes the release gates.',
+                'serving_default' => false,
+            ],
+        );
+        ModelVersion::query()->updateOrCreate(
             ['model_id' => 'xlm-roberta-base', 'version' => 'revision-pending'],
             [
                 'role' => 'Multilingual transformer candidate',
@@ -123,14 +156,57 @@ class GovernanceImporter
                 'serving_default' => false,
             ],
         );
+    }
 
-        ReviewSignoff::query()->firstOrCreate(
-            ['gate' => 'sorani_language'],
-            ['reviewer_role' => 'Qualified Sorani language reviewer', 'status' => 'pending'],
-        );
-        ReviewSignoff::query()->firstOrCreate(
-            ['gate' => 'clinical_safety'],
-            ['reviewer_role' => 'Qualified clinical-safety reviewer', 'status' => 'pending'],
-        );
+    /** @throws JsonException */
+    private function importSignoffs(string $path): void
+    {
+        $document = $this->readJson($path);
+        foreach ($document['signoffs'] ?? [] as $signoff) {
+            ReviewSignoff::query()->updateOrCreate(
+                ['gate' => $signoff['gate']],
+                [
+                    'reviewer_name' => $signoff['reviewer_name'] ?? null,
+                    'reviewer_role' => $signoff['reviewer_role'],
+                    'status' => $signoff['status'],
+                    'evidence_checksum' => $signoff['evidence_checksum'] ?? null,
+                    'reviewed_at' => ! empty($signoff['reviewed_at']) ? Carbon::parse($signoff['reviewed_at']) : null,
+                ],
+            );
+        }
+    }
+
+    private function readCsv(string $path): array
+    {
+        $handle = fopen($path, 'rb');
+        if ($handle === false) {
+            throw new RuntimeException("Unable to read governed CSV at {$path}");
+        }
+        $headers = fgetcsv($handle);
+        if ($headers === false) {
+            throw new RuntimeException("Governed CSV is empty at {$path}");
+        }
+        $rows = [];
+        while (($values = fgetcsv($handle)) !== false) {
+            $row = array_combine($headers, $values);
+            if ($row === false) {
+                throw new RuntimeException("Governed CSV contains a malformed row at {$path}");
+            }
+            $rows[] = $row;
+        }
+        fclose($handle);
+
+        return $rows;
+    }
+
+    /** @throws JsonException */
+    private function readJson(string $path): array
+    {
+        $contents = file_get_contents($path);
+        if ($contents === false) {
+            throw new RuntimeException("Unable to read governed JSON at {$path}");
+        }
+
+        return json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
     }
 }

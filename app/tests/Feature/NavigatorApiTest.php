@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DatasetVersion;
+use App\Models\DemoSample;
 use App\Models\ModelVersion;
 use App\Models\ReviewSignoff;
 use App\Models\RoutingEvent;
@@ -10,6 +11,7 @@ use App\Services\GovernanceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 class NavigatorApiTest extends TestCase
@@ -20,6 +22,9 @@ class NavigatorApiTest extends TestCase
     {
         parent::setUp();
         config()->set('governance.resources_path', dirname(__DIR__, 3).'/resources');
+        $hotFile = storage_path('framework/testing.vite.hot');
+        file_put_contents($hotFile, 'http://127.0.0.1:5173');
+        Vite::useHotFile($hotFile);
         app(GovernanceImporter::class)->import();
     }
 
@@ -39,6 +44,23 @@ class NavigatorApiTest extends TestCase
             ->assertJsonPath('info.title', 'Maternity Learning Navigator API');
     }
 
+    public function test_openapi_documents_every_live_demo_contract_and_failure_state(): void
+    {
+        $document = $this->getJson('/api/v1/openapi.json')->assertOk()->json();
+
+        foreach (['/demo/samples', '/demo/classifications', '/demo/classifications/{requestId}/explanation'] as $path) {
+            $this->assertArrayHasKey($path, $document['paths']);
+        }
+        foreach (['200', '404', '409', '422', '429', '503'] as $status) {
+            $this->assertArrayHasKey(
+                $status,
+                $document['paths']['/demo/classifications']['post']['responses'],
+            );
+        }
+        $this->assertTrue($document['components']['schemas']['DemoClassificationInput']['additionalProperties'] === false);
+        $this->assertSame(8, $document['components']['schemas']['DemoExplanation']['properties']['features']['maxItems']);
+    }
+
     public function test_free_text_fails_closed_while_human_reviews_are_pending(): void
     {
         config()->set('governance.free_text_enabled', true);
@@ -54,6 +76,110 @@ class NavigatorApiTest extends TestCase
             ->assertJsonPath('explanation_available', false);
         $this->assertDatabaseMissing('routing_events', ['status' => 'matched']);
         $this->assertFalse(collect(Schema::getColumnListing('routing_events'))->contains('question'));
+    }
+
+    public function test_curated_samples_remain_hidden_until_exact_content_review_is_approved(): void
+    {
+        $this->getJson('/api/v1/demo/samples?locale=ckb')
+            ->assertOk()
+            ->assertJsonPath('demo_only', true)
+            ->assertJsonPath('review_status', 'changes_required')
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_demo_classification_accepts_only_an_approved_visible_sample_id(): void
+    {
+        $sample = $this->approveVisibleSample('en');
+        Http::fake([
+            '*/v1/demo/classify' => Http::response([
+                'demo_only' => true,
+                'status' => 'matched',
+                'category' => $sample->category->slug,
+                'confidence' => .88,
+                'confidence_band' => 'high',
+                'model_id' => 'demo-tfidf-logreg',
+                'model_version' => 'fixture-version',
+            ]),
+        ]);
+
+        $this->postJson('/api/v1/demo/classifications', [
+            'sample_id' => $sample->sample_id,
+            'question' => 'This arbitrary question must be rejected.',
+        ])->assertUnprocessable();
+
+        $response = $this->postJson('/api/v1/demo/classifications', ['sample_id' => $sample->sample_id]);
+        $response->assertOk()
+            ->assertJsonPath('demo_only', true)
+            ->assertJsonPath('status', 'matched')
+            ->assertJsonPath('sample.sample_id', $sample->sample_id)
+            ->assertJsonPath('category.slug', $sample->category->slug)
+            ->assertJsonPath('explanation_available', true);
+
+        $event = RoutingEvent::query()->firstOrFail();
+        $this->assertSame('curated_demo', $event->mode);
+        $this->assertSame($sample->id, $event->demo_sample_id);
+        $this->assertNull($event->question_fingerprint);
+        $this->assertFalse(collect(Schema::getColumnListing('routing_events'))->contains('question'));
+    }
+
+    public function test_demo_explanation_is_bound_to_its_classification_and_never_persisted(): void
+    {
+        $sample = $this->approveVisibleSample('en');
+        Http::fake([
+            '*/v1/demo/classify' => Http::response([
+                'demo_only' => true,
+                'status' => 'matched',
+                'category' => $sample->category->slug,
+                'confidence' => .88,
+                'confidence_band' => 'high',
+                'model_id' => 'demo-tfidf-logreg',
+                'model_version' => 'fixture-version',
+            ]),
+            '*/v1/demo/explain' => Http::response([
+                'demo_only' => true,
+                'predicted_class' => $sample->category->slug,
+                'explained_class' => $sample->category->slug,
+                'probability' => .88,
+                'random_seed' => 41,
+                'num_samples' => 1000,
+                'features' => [[
+                    'token' => 'appointment',
+                    'weight' => .42,
+                    'direction' => 'supporting',
+                    'occurrences' => [['start' => 21, 'end' => 32]],
+                ]],
+            ]),
+        ]);
+        $classification = $this->postJson('/api/v1/demo/classifications', ['sample_id' => $sample->sample_id]);
+        $requestId = $classification->json('request_id');
+
+        $this->postJson("/api/v1/demo/classifications/{$requestId}/explanation", [
+            'question' => $sample->question,
+        ])->assertUnprocessable();
+
+        $this->postJson("/api/v1/demo/classifications/{$requestId}/explanation")
+            ->assertOk()
+            ->assertJsonPath('demo_only', true)
+            ->assertJsonPath('predicted_class', $sample->category->slug)
+            ->assertJsonPath('explained_class', $sample->category->slug)
+            ->assertJsonPath('sampling.random_seed', 41)
+            ->assertJsonPath('features.0.direction', 'supporting');
+
+        $this->assertDatabaseCount('routing_events', 1);
+        $this->assertFalse(collect(Schema::getColumnListing('routing_events'))->contains('lime_tokens'));
+    }
+
+    public function test_demo_model_service_failure_has_an_explicit_unavailable_contract(): void
+    {
+        $sample = $this->approveVisibleSample('en');
+        Http::fake(['*/v1/demo/classify' => Http::response(['detail' => 'Demo artifact unavailable'], 503)]);
+
+        $this->postJson('/api/v1/demo/classifications', ['sample_id' => $sample->sample_id])
+            ->assertServiceUnavailable()
+            ->assertJsonPath('demo_only', true)
+            ->assertJsonPath('reason', 'model_service_unavailable');
+
+        $this->assertDatabaseCount('routing_events', 0);
     }
 
     public function test_approved_gate_calls_private_model_and_stores_derived_metadata_only(): void
@@ -111,6 +237,21 @@ class NavigatorApiTest extends TestCase
         $this->assertStringNotContainsString('mutation', file_get_contents(base_path('graphql/schema.graphql')));
     }
 
+    public function test_rest_and_graphql_report_language_fallback_explicitly(): void
+    {
+        $this->getJson('/api/v1/resources?category=antenatal-appointments&locale=ckb')
+            ->assertOk()
+            ->assertJsonPath('requested_locale', 'ckb')
+            ->assertJsonPath('data.0.fallback_used', true)
+            ->assertJsonPath('data.0.locale_match', false);
+
+        $this->postJson('/graphql', [
+            'query' => '{ resources(category: "antenatal-appointments", locale: "ckb") { code requestedLocale localeMatch fallbackUsed } }',
+        ])->assertOk()
+            ->assertJsonPath('data.resources.0.requestedLocale', 'ckb')
+            ->assertJsonPath('data.resources.0.fallbackUsed', true);
+    }
+
     public function test_feedback_rejects_free_text_fields(): void
     {
         $event = RoutingEvent::query()->create([
@@ -143,5 +284,19 @@ class NavigatorApiTest extends TestCase
             'Access-Control-Request-Method' => 'GET',
         ])->options('/api/v1/resources')
             ->assertHeader('Access-Control-Allow-Origin', 'https://maternity.example.test');
+    }
+
+    private function approveVisibleSample(string $locale): DemoSample
+    {
+        $sample = DemoSample::query()->with('category')->where('locale', $locale)->where('split', 'visible')->firstOrFail();
+        $sample->update([
+            'review_status' => 'approved',
+            'translation_status' => $locale === 'ckb' ? 'human_reviewed' : 'not_applicable',
+            'reviewer_name' => 'Test reviewer',
+            'reviewer_role' => 'Test fixture reviewer',
+            'reviewed_at' => now(),
+        ]);
+
+        return $sample->fresh('category');
     }
 }

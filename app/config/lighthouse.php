@@ -121,7 +121,11 @@ return [
         /*
          * Setting to true enables query caching.
          */
-        'enable' => env('LIGHTHOUSE_QUERY_CACHE_ENABLE', true),
+        // Laravel deliberately rejects unserialising cached object graphs by default.
+        // Lighthouse's "store" mode persists parsed AST objects, so keeping it enabled
+        // with the database cache can return __PHP_Incomplete_Class across requests.
+        // This small public read-only schema is fast without a parsed-query cache.
+        'enable' => env('LIGHTHOUSE_QUERY_CACHE_ENABLE', false),
 
         /*
          * Configures which mechanism to use for the query cache.

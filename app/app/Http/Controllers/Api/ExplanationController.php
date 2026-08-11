@@ -16,6 +16,7 @@ class ExplanationController extends Controller
             'question' => ['required', 'string', 'min:3', 'max:500'],
         ]);
         $event = RoutingEvent::query()->with('modelVersion')->where('request_id', $requestId)->firstOrFail();
+        abort_unless($event->mode === 'production', 409, 'Use the curated-demo explanation endpoint for demo routing events.');
         $fingerprint = hash_hmac(
             'sha256',
             mb_strtolower(trim($validated['question'])),
