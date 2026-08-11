@@ -58,6 +58,7 @@ class NavigatorApiTest extends TestCase
             );
         }
         $this->assertTrue($document['components']['schemas']['DemoClassificationInput']['additionalProperties'] === false);
+        $this->assertContains('reason', $document['components']['schemas']['DemoSampleList']['required']);
         $this->assertSame(8, $document['components']['schemas']['DemoExplanation']['properties']['features']['maxItems']);
     }
 
@@ -85,6 +86,80 @@ class NavigatorApiTest extends TestCase
             ->assertJsonPath('demo_only', true)
             ->assertJsonPath('review_status', 'changes_required')
             ->assertJsonCount(0, 'data');
+    }
+
+    public function test_curated_demo_fails_closed_when_rows_and_release_signoff_disagree(): void
+    {
+        DemoSample::query()->update([
+            'review_status' => 'approved',
+            'reviewer_name' => 'Test reviewer',
+            'reviewer_role' => 'Test fixture reviewer',
+            'reviewed_at' => now(),
+        ]);
+        DemoSample::query()->where('locale', 'ckb')->update(['translation_status' => 'human_reviewed']);
+        $sample = DemoSample::query()->where('locale', 'en')->where('split', 'visible')->firstOrFail();
+
+        $this->getJson('/api/v1/demo/samples?locale=en')
+            ->assertOk()
+            ->assertJsonPath('reason', 'review_gate_pending')
+            ->assertJsonCount(0, 'data');
+        $this->postJson('/api/v1/demo/classifications', ['sample_id' => $sample->sample_id])
+            ->assertConflict()
+            ->assertJsonPath('reason', 'review_gate_pending');
+        $this->assertDatabaseCount('routing_events', 0);
+    }
+
+    public function test_approved_manifest_derives_review_state_without_mutating_signed_csv(): void
+    {
+        $dataset = dirname(__DIR__, 3).'/resources/demo_samples.csv';
+        $interface = base_path('resources/js/interface-catalog.json');
+        $reviewPath = tempnam(sys_get_temp_dir(), 'demo-review-');
+        $signoffsPath = tempnam(sys_get_temp_dir(), 'demo-signoffs-');
+        $reviewedAt = '2026-08-11T12:00:00+01:00';
+        $review = [
+            'schema_version' => 1,
+            'decision' => 'approved',
+            'reviewer_name' => 'Karlo Nahro',
+            'reviewer_role' => 'Native Sorani speaker and professional translator',
+            'reviewed_at' => $reviewedAt,
+            'dataset_file' => 'resources/demo_samples.csv',
+            'dataset_sha256' => hash_file('sha256', $dataset),
+            'interface_file' => 'app/resources/js/interface-catalog.json',
+            'interface_sha256' => hash_file('sha256', $interface),
+            'decision_notes' => 'Exact immutable content approved for the curated portfolio demonstration.',
+        ];
+        file_put_contents($reviewPath, json_encode($review, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $signoffs = json_decode(file_get_contents(dirname(__DIR__, 3).'/governance/review_signoffs.json'), true);
+        foreach ($signoffs['signoffs'] as &$signoff) {
+            if ($signoff['gate'] !== 'curated_demo_sorani') {
+                continue;
+            }
+            $signoff = array_merge($signoff, [
+                'status' => 'approved',
+                'reviewer_name' => $review['reviewer_name'],
+                'reviewer_role' => $review['reviewer_role'],
+                'reviewed_at' => $reviewedAt,
+                'evidence_file' => 'governance/demo_review_manifest.json',
+                'evidence_checksum' => hash_file('sha256', $reviewPath),
+            ]);
+        }
+        unset($signoff);
+        file_put_contents($signoffsPath, json_encode($signoffs, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        config()->set('governance.demo_review_path', $reviewPath);
+        config()->set('governance.signoffs_path', $signoffsPath);
+
+        app(GovernanceImporter::class)->import();
+
+        $this->assertSame(144, DemoSample::query()->where('review_status', 'approved')->count());
+        $this->assertSame(72, DemoSample::query()->where('locale', 'ckb')->where('translation_status', 'human_reviewed')->count());
+        $this->assertSame(144, DemoSample::query()->where('reviewer_name', 'Karlo Nahro')->count());
+        $this->getJson('/api/v1/demo/samples?locale=ckb')
+            ->assertOk()
+            ->assertJsonPath('review_status', 'approved')
+            ->assertJsonCount(6, 'data');
+
+        unlink($reviewPath);
+        unlink($signoffsPath);
     }
 
     public function test_demo_classification_accepts_only_an_approved_visible_sample_id(): void
@@ -288,14 +363,21 @@ class NavigatorApiTest extends TestCase
 
     private function approveVisibleSample(string $locale): DemoSample
     {
-        $sample = DemoSample::query()->with('category')->where('locale', $locale)->where('split', 'visible')->firstOrFail();
-        $sample->update([
+        DemoSample::query()->update([
             'review_status' => 'approved',
-            'translation_status' => $locale === 'ckb' ? 'human_reviewed' : 'not_applicable',
             'reviewer_name' => 'Test reviewer',
             'reviewer_role' => 'Test fixture reviewer',
             'reviewed_at' => now(),
         ]);
+        DemoSample::query()->where('locale', 'ckb')->update(['translation_status' => 'human_reviewed']);
+        ReviewSignoff::query()->where('gate', 'curated_demo_sorani')->update([
+            'status' => 'approved',
+            'reviewer_name' => 'Test reviewer',
+            'reviewer_role' => 'Test fixture reviewer',
+            'reviewed_at' => now(),
+            'evidence_checksum' => str_repeat('c', 64),
+        ]);
+        $sample = DemoSample::query()->with('category')->where('locale', $locale)->where('split', 'visible')->firstOrFail();
 
         return $sample->fresh('category');
     }

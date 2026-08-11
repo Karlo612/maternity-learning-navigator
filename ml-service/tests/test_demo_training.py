@@ -39,11 +39,11 @@ def approved_inputs(tmp_path: Path) -> tuple[Path, Path, Path]:
                         "split": split,
                         "paraphrase_family_id": f"{locale}-{category}-family-{index:02d}",
                         "authoring_method": "test_fixture",
-                        "translation_status": "human_reviewed" if locale == "ckb" else "not_applicable",
-                        "review_status": "approved",
-                        "reviewer_name": "Test reviewer",
-                        "reviewer_role": "Test language reviewer",
-                        "reviewed_at": "2026-08-11T00:00:00+01:00",
+                        "translation_status": "draft_machine_assisted" if locale == "ckb" else "not_applicable",
+                        "review_status": "pending_review",
+                        "reviewer_name": "",
+                        "reviewer_role": "",
+                        "reviewed_at": "",
                         "safety_class": "educational",
                     })
     interface = tmp_path / "interface.json"

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DemoSample;
 use App\Models\ModelVersion;
 use App\Models\RoutingEvent;
+use App\Services\CuratedDemoGate;
 use App\Services\MlClient;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,7 @@ use Throwable;
 
 class DemoClassificationController extends Controller
 {
-    public function __invoke(Request $request, MlClient $ml): JsonResponse
+    public function __invoke(Request $request, MlClient $ml, CuratedDemoGate $gate): JsonResponse
     {
         $started = hrtime(true);
         $validated = $request->validate([
@@ -23,6 +24,14 @@ class DemoClassificationController extends Controller
             'question' => ['prohibited'],
             'locale' => ['prohibited'],
         ]);
+        if (! $gate->released()) {
+            return response()->json([
+                'demo_only' => true,
+                'status' => 'unsupported',
+                'reason' => 'review_gate_pending',
+                'message' => 'The fixed demonstration samples remain unavailable until the exact reviewed checksums and release sign-off agree.',
+            ], 409);
+        }
         $sample = DemoSample::query()->with(['category.sources', 'category.translations'])
             ->where('sample_id', $validated['sample_id'])
             ->where('split', 'visible')

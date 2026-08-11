@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\RoutingEvent;
+use App\Services\CuratedDemoGate;
 use App\Services\MlClient;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
@@ -12,12 +13,20 @@ use Throwable;
 
 class DemoExplanationController extends Controller
 {
-    public function __invoke(Request $request, string $requestId, MlClient $ml): JsonResponse
+    public function __invoke(Request $request, string $requestId, MlClient $ml, CuratedDemoGate $gate): JsonResponse
     {
         $request->validate([
             'question' => ['prohibited'],
             'sample_id' => ['prohibited'],
         ]);
+        if (! $gate->released()) {
+            return response()->json([
+                'request_id' => $requestId,
+                'demo_only' => true,
+                'reason' => 'review_gate_pending',
+                'message' => 'The fixed demonstration explanation remains unavailable until the exact reviewed checksums and release sign-off agree.',
+            ], 409);
+        }
         $event = RoutingEvent::query()->with(['demoSample', 'category', 'modelVersion'])
             ->where('request_id', $requestId)
             ->where('mode', 'curated_demo')

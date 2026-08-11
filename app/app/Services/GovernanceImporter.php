@@ -29,8 +29,13 @@ class GovernanceImporter
     {
         $resources = rtrim((string) config('governance.resources_path'), '/');
         $demoReview = $this->readJson((string) config('governance.demo_review_path'));
-        $catalog = $this->readJson((string) config('governance.interface_catalog_path'));
-        $translationApproved = ($demoReview['decision'] ?? null) === 'approved';
+        $demoPath = $resources.'/demo_samples.csv';
+        $interfacePath = (string) config('governance.interface_catalog_path');
+        $signoffsPath = (string) config('governance.signoffs_path');
+        $signoffs = $this->readJson($signoffsPath);
+        $catalog = $this->readJson($interfacePath);
+        $demoApproved = $this->validatedDemoApproval($demoReview, $demoPath, $interfacePath);
+        $this->validateDemoSignoff($demoReview, $signoffs, $demoApproved);
 
         foreach ($catalog['en']['categories'] as $slug => $english) {
             $category = Category::query()->updateOrCreate(
@@ -44,8 +49,8 @@ class GovernanceImporter
                     [
                         'label' => $sorani['label'],
                         'description' => $sorani['description'],
-                        'review_status' => $translationApproved ? 'approved' : 'pending',
-                        'reviewed_at' => $translationApproved ? $demoReview['reviewed_at'] : null,
+                        'review_status' => $demoApproved ? 'approved' : 'pending',
+                        'reviewed_at' => $demoApproved ? $demoReview['reviewed_at'] : null,
                     ],
                 );
             }
@@ -54,9 +59,9 @@ class GovernanceImporter
         $this->importSources($resources.'/source_registry.csv');
         $this->importDatasetState($resources.'/question_candidates.csv');
         $this->connectCategorySources();
-        $this->importDemoSamples($resources.'/demo_samples.csv');
+        $this->importDemoSamples($demoPath, $demoReview, $demoApproved);
         $this->importModelDecisions();
-        $this->importSignoffs((string) config('governance.signoffs_path'));
+        $this->importSignoffs($signoffs);
     }
 
     private function importSources(string $path): void
@@ -99,7 +104,7 @@ class GovernanceImporter
         }
     }
 
-    private function importDemoSamples(string $path): void
+    private function importDemoSamples(string $path, array $review, bool $approved): void
     {
         foreach ($this->readCsv($path) as $row) {
             $category = Category::query()->where('slug', $row['category'])->firstOrFail();
@@ -114,16 +119,72 @@ class GovernanceImporter
                     'split' => $row['split'],
                     'paraphrase_family_id' => $row['paraphrase_family_id'],
                     'authoring_method' => $row['authoring_method'],
-                    'translation_status' => $row['translation_status'],
-                    'review_status' => $row['review_status'],
-                    'reviewer_name' => $row['reviewer_name'] ?: null,
-                    'reviewer_role' => $row['reviewer_role'] ?: null,
-                    'reviewed_at' => $row['reviewed_at'] ? Carbon::parse($row['reviewed_at']) : null,
+                    'translation_status' => $approved && $row['locale'] === 'ckb'
+                        ? 'human_reviewed'
+                        : $row['translation_status'],
+                    'review_status' => $approved ? 'approved' : $row['review_status'],
+                    'reviewer_name' => $approved ? $review['reviewer_name'] : ($row['reviewer_name'] ?: null),
+                    'reviewer_role' => $approved ? $review['reviewer_role'] : ($row['reviewer_role'] ?: null),
+                    'reviewed_at' => $approved
+                        ? Carbon::parse($review['reviewed_at'])
+                        : ($row['reviewed_at'] ? Carbon::parse($row['reviewed_at']) : null),
                     'content_checksum' => hash('sha256', implode("\x1f", [
                         $row['sample_id'], $row['locale'], $row['question'], $row['category'], $row['source_id'],
                     ])),
                 ],
             );
+        }
+    }
+
+    private function validatedDemoApproval(array $review, string $datasetPath, string $interfacePath): bool
+    {
+        if (($review['decision'] ?? null) !== 'approved') {
+            return false;
+        }
+        if (($review['schema_version'] ?? null) !== 1) {
+            throw new RuntimeException('Approved demo review manifest has an unsupported schema version.');
+        }
+        foreach (['reviewer_name', 'reviewer_role', 'reviewed_at'] as $field) {
+            if (empty($review[$field])) {
+                throw new RuntimeException("Approved demo review manifest is missing {$field}.");
+            }
+        }
+        foreach ([
+            'dataset_sha256' => $datasetPath,
+            'interface_sha256' => $interfacePath,
+        ] as $field => $path) {
+            $actual = hash_file('sha256', $path);
+            if ($actual === false || ! hash_equals((string) ($review[$field] ?? ''), $actual)) {
+                throw new RuntimeException("Approved demo review manifest has a mismatched {$field}.");
+            }
+        }
+
+        return true;
+    }
+
+    private function validateDemoSignoff(array $review, array $document, bool $manifestApproved): void
+    {
+        $signoff = collect($document['signoffs'] ?? [])->firstWhere('gate', 'curated_demo_sorani');
+        if (! is_array($signoff)) {
+            throw new RuntimeException('The curated demo release sign-off is missing.');
+        }
+        $signoffApproved = ($signoff['status'] ?? null) === 'approved';
+        if ($manifestApproved !== $signoffApproved) {
+            throw new RuntimeException('The curated demo review manifest and release sign-off disagree.');
+        }
+        if (! $manifestApproved) {
+            return;
+        }
+        foreach (['reviewer_name', 'reviewer_role', 'reviewed_at'] as $field) {
+            if (($signoff[$field] ?? null) !== ($review[$field] ?? null)) {
+                throw new RuntimeException("The curated demo release sign-off has mismatched {$field}.");
+            }
+        }
+        $manifestChecksum = hash_file('sha256', (string) config('governance.demo_review_path'));
+        if ($manifestChecksum === false
+            || ($signoff['evidence_file'] ?? null) !== 'governance/demo_review_manifest.json'
+            || ! hash_equals((string) ($signoff['evidence_checksum'] ?? ''), $manifestChecksum)) {
+            throw new RuntimeException('The curated demo release sign-off is not bound to the approved review manifest.');
         }
     }
 
@@ -159,9 +220,8 @@ class GovernanceImporter
     }
 
     /** @throws JsonException */
-    private function importSignoffs(string $path): void
+    private function importSignoffs(array $document): void
     {
-        $document = $this->readJson($path);
         foreach ($document['signoffs'] ?? [] as $signoff) {
             ReviewSignoff::query()->updateOrCreate(
                 ['gate' => $signoff['gate']],

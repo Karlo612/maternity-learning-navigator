@@ -110,7 +110,7 @@ Review evidence:
 - [Fixed question corpus](resources/demo_samples.csv)
 - [Shared interface catalogue](app/resources/js/interface-catalog.json)
 
-The validator recomputes those checksums and refuses an approval whose content has changed.
+The CSV and interface catalogue remain immutable approval targets. Their row-level fields preserve pre-sign-off provenance; an exact-hash approved manifest derives the effective reviewer, approval and `human_reviewed` state when MySQL is seeded. The release sign-off is separately bound to the manifest checksum. The validator and importer fail closed if content changes or those two decisions disagree.
 
 ## REST and GraphQL
 

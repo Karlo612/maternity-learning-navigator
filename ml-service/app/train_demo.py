@@ -52,10 +52,15 @@ def load_reviewed_demo_rows(dataset: Path, review_manifest: Path, interface_cata
     rows: list[DemoRow] = []
     for raw in raw_rows:
         identifier = raw.get("sample_id", "unknown")
-        if raw.get("review_status") != "approved":
-            raise DemoReviewLocked(f"{identifier}: demo row is not approved")
-        if raw.get("locale") == "ckb" and raw.get("translation_status") != "human_reviewed":
-            raise DemoReviewLocked(f"{identifier}: Sorani demo row lacks human review")
+        # The manifest is the sign-off record for the exact immutable CSV and
+        # interface hashes. Row fields retain their pre-sign-off provenance so
+        # approving the corpus never changes the content checksum being signed.
+        if raw.get("review_status") not in {"pending_review", "approved"}:
+            raise DemoReviewLocked(f"{identifier}: demo row has an invalid review state")
+        if raw.get("locale") == "ckb" and raw.get("translation_status") not in {
+            "draft_machine_assisted", "human_reviewed",
+        }:
+            raise DemoReviewLocked(f"{identifier}: Sorani demo row has invalid translation provenance")
         if raw.get("safety_class") != "educational":
             raise DemoReviewLocked(f"{identifier}: demo rows must be non-urgent educational questions")
         row = DemoRow(

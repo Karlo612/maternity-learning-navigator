@@ -16,8 +16,10 @@ The review covers the exact files below. Approval applies only when their SHA-25
 
 ## Decision rules
 
-- Each Sorani row must be corrected if needed, then changed from `draft_machine_assisted` to `human_reviewed` and from `pending_review` to `approved`.
-- Each English row must be changed from `pending_review` to `approved` after content review.
+- Correct any question or interface string that needs a change **before** approval, then regenerate the two checksums in this worksheet and the machine-readable review manifest.
+- The CSV remains an immutable, pre-sign-off provenance record: `draft_machine_assisted` records how Sorani text was prepared and `pending_review` records its state when presented. These fields are not rewritten after approval because doing so would invalidate the content hash being signed.
+- Exact approval is recorded in `governance/demo_review_manifest.json`. During import, a valid approved manifest derives the effective `human_reviewed` and `approved` state, reviewer attribution and date in MySQL.
+- `governance/review_signoffs.json` must independently approve the curated-demo release and bind to the SHA-256 of that manifest. If the manifest and release sign-off disagree, validation and import fail closed.
 - The visible and hidden fixture families must remain separate from the ten training families.
 - Questions must remain fixed, educational and non-urgent. Any symptom, triage, treatment or outcome-prediction wording must be rejected.
 - RTL layout must be inspected in the running application after the content review.
@@ -36,6 +38,6 @@ The CSV is the exact-text worksheet: `question`, `source_id`, `category`, `trans
 | `after-birth-postnatal` | After birth and postnatal | دوای لەدایکبوون | NHS after-birth and postnatal-check information |
 | `feeding-support` | Feeding support | پشتگیری شیرپێدان | NHS breastfeeding and bottle-feeding support |
 
-The proposed decision for every row is currently `pending_review`; the manifest decision is `changes_required`. Approval must be applied to exact corrected text, not to this category guide in isolation.
+The row fields currently describe the pre-sign-off provenance and the manifest decision is `changes_required`. Approval applies to the exact CSV and catalogue checksums, not to this category guide in isolation.
 
 The independent clinical-safety gate remains pending and this curated-language review cannot approve unrestricted free-text routing.

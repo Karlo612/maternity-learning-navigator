@@ -223,8 +223,8 @@ def validate() -> None:
     if review["decision"] == "approved":
         if not all(review.get(field) for field in ("reviewer_name", "reviewer_role", "reviewed_at")):
             raise ValueError("demo review manifest: approval evidence is incomplete")
-        if any(row["review_status"] != "approved" for row in demo):
-            raise ValueError("demo review manifest: approval requires every demo row to be approved")
+        if any(row["review_status"] not in {"pending_review", "approved"} for row in demo):
+            raise ValueError("demo review manifest: dataset contains an invalid row review state")
 
     signoffs = json.loads((ROOT / "governance" / "review_signoffs.json").read_text(encoding="utf-8"))
     if signoffs.get("schema_version") != 1:
@@ -237,6 +237,23 @@ def validate() -> None:
             evidence = ROOT / signoff["evidence_file"]
             if not evidence.exists() or sha256_file(evidence) != signoff["evidence_checksum"]:
                 raise ValueError(f"review signoffs: evidence mismatch for {signoff['gate']}")
+    demo_signoff = next(
+        row for row in signoffs["signoffs"] if row.get("gate") == "curated_demo_sorani"
+    )
+    manifest_approved = review["decision"] == "approved"
+    signoff_approved = demo_signoff.get("status") == "approved"
+    if manifest_approved != signoff_approved:
+        raise ValueError("curated demo manifest and release signoff disagree")
+    if manifest_approved:
+        if any(
+            demo_signoff.get(field) != review.get(field)
+            for field in ("reviewer_name", "reviewer_role", "reviewed_at")
+        ):
+            raise ValueError("curated demo manifest and release signoff attribution disagree")
+        if demo_signoff.get("evidence_file") != "governance/demo_review_manifest.json":
+            raise ValueError("curated demo signoff must reference the approved review manifest")
+        if demo_signoff.get("evidence_checksum") != sha256_file(review_path):
+            raise ValueError("curated demo signoff is not bound to the review manifest checksum")
 
     safety_template = json.loads((RESOURCES / "safety_bypass_rules.template.json").read_text(encoding="utf-8"))
     if safety_template.get("schema_version") != 1:
