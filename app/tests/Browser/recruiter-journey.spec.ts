@@ -7,11 +7,7 @@ async function runReleasedJourney(page: import('@playwright/test').Page, locale:
     await expect(page.locator('html')).toHaveAttribute('lang', locale);
     await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ckb' ? 'rtl' : 'ltr');
     const samples = page.locator('input[name="demo-sample"]');
-    if (await samples.count() === 0) {
-        await expect(page.getByText(/Exact-text review is still open|پێداچوونەوەی دەقی ورد/)).toBeVisible();
-        await expect(page.getByLabel(locale === 'ckb' ? 'دەقی ئازادی گشتی هێشتا داخراوە' : 'Public free text remains locked')).toBeDisabled();
-        return;
-    }
+    await expect(samples).toHaveCount(6);
     await samples.first().check();
     await page.getByRole('button', { name: /Run the governed demonstration|پیشاندانی بەڕێوەبراو/ }).click();
     await expect(page.getByText(locale === 'ckb' ? 'ئەنجامی ئاراستەکردن' : 'Routing result')).toBeVisible();
@@ -20,7 +16,7 @@ async function runReleasedJourney(page: import('@playwright/test').Page, locale:
     await expect(page.getByText(/approximate and non-causal|ناوخۆیی و نزیکەیی و ناهۆکارییە/)).toBeVisible();
 }
 
-test('English recruiter journey fails closed or completes the released demo', async ({ page }) => {
+test('English recruiter journey completes the approved demo', async ({ page }) => {
     await runReleasedJourney(page, 'en');
 });
 
@@ -33,6 +29,14 @@ test('the API exhibit executes live REST and GraphQL calls', async ({ page }) =>
     await page.getByRole('button', { name: 'GET health' }).click();
     await expect(page.locator('.http-status')).toHaveText('200');
     await expect(page.locator('.response-code')).toContainText('curated_demo');
+    await page.getByRole('button', { name: 'POST demo classification' }).click();
+    await expect(page.locator('.http-status')).toHaveText('200');
+    await expect(page.locator('.response-code')).toContainText('"demo_only": true');
+    await expect(page.locator('.response-code')).toContainText('"status": "matched"');
+    await page.getByRole('button', { name: 'POST demo explanation' }).click();
+    await expect(page.locator('.http-status')).toHaveText('200');
+    await expect(page.locator('.response-code')).toContainText('"explained_class"');
+    await expect(page.locator('.response-code')).toContainText('"features"');
     await page.getByRole('button', { name: 'GQL categories' }).click();
     await expect(page.locator('.http-status')).toHaveText('200');
     await expect(page.locator('.response-code')).toContainText('antenatal-appointments');

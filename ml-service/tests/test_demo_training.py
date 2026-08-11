@@ -7,6 +7,7 @@ import pytest
 
 from app.governance import EXPECTED_CATEGORIES
 from app.registry import ArtifactError, ModelRegistry
+from app.text_processing import normalize_demo_text
 from app.train_demo import DemoReviewLocked, train
 
 
@@ -82,12 +83,19 @@ def test_demo_training_packages_isolated_checksum_verified_fixture_model(tmp_pat
     assert manifest["release_status"] == "demo_approved"
     assert all(row["passed"] for row in manifest["fixture_checks"]["visible"])
     assert all(row["passed"] for row in manifest["fixture_checks"]["hidden"])
+    assert manifest["training_configuration"]["random_seed"] == 41
     registry = ModelRegistry(output, expected_mode="curated_demo", required_release_status="demo_approved")
     assert registry.ready is True
 
     (output / "demo.joblib").write_bytes((output / "demo.joblib").read_bytes() + b"tampered")
     with pytest.raises(ArtifactError, match="checksum"):
         ModelRegistry(output, expected_mode="curated_demo", required_release_status="demo_approved")
+
+
+def test_demo_topic_synonym_normalisation_is_explicit_and_deterministic() -> None:
+    assert normalize_demo_text("Ways pain may be managed during labour") == (
+        "ways pain may be pain relief during labour"
+    )
 
 
 def test_demo_training_rejects_modified_reviewed_content(tmp_path: Path) -> None:

@@ -79,13 +79,14 @@ class NavigatorApiTest extends TestCase
         $this->assertFalse(collect(Schema::getColumnListing('routing_events'))->contains('question'));
     }
 
-    public function test_curated_samples_remain_hidden_until_exact_content_review_is_approved(): void
+    public function test_curated_samples_are_visible_after_exact_content_review_is_approved(): void
     {
         $this->getJson('/api/v1/demo/samples?locale=ckb')
             ->assertOk()
             ->assertJsonPath('demo_only', true)
-            ->assertJsonPath('review_status', 'changes_required')
-            ->assertJsonCount(0, 'data');
+            ->assertJsonPath('review_status', 'approved')
+            ->assertJsonPath('reason', null)
+            ->assertJsonCount(6, 'data');
     }
 
     public function test_curated_demo_fails_closed_when_rows_and_release_signoff_disagree(): void
@@ -97,6 +98,11 @@ class NavigatorApiTest extends TestCase
             'reviewed_at' => now(),
         ]);
         DemoSample::query()->where('locale', 'ckb')->update(['translation_status' => 'human_reviewed']);
+        ReviewSignoff::query()->where('gate', 'curated_demo_sorani')->update([
+            'status' => 'changes_required',
+            'evidence_checksum' => null,
+            'reviewed_at' => null,
+        ]);
         $sample = DemoSample::query()->where('locale', 'en')->where('split', 'visible')->firstOrFail();
 
         $this->getJson('/api/v1/demo/samples?locale=en')

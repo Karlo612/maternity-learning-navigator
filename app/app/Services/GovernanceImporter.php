@@ -60,7 +60,7 @@ class GovernanceImporter
         $this->importDatasetState($resources.'/question_candidates.csv');
         $this->connectCategorySources();
         $this->importDemoSamples($demoPath, $demoReview, $demoApproved);
-        $this->importModelDecisions();
+        $this->importModelDecisions($demoApproved, $demoPath);
         $this->importSignoffs($signoffs);
     }
 
@@ -188,14 +188,25 @@ class GovernanceImporter
         }
     }
 
-    private function importModelDecisions(): void
+    private function importModelDecisions(bool $demoApproved, string $demoPath): void
     {
+        $demoVersion = $demoApproved
+            ? substr((string) hash_file('sha256', $demoPath), 0, 12)
+            : 'review-pending';
         ModelVersion::query()->updateOrCreate(
-            ['model_id' => 'demo-tfidf-logreg', 'version' => 'review-pending'],
+            ['model_id' => 'demo-tfidf-logreg'],
             [
+                'version' => $demoVersion,
                 'role' => 'Curated bilingual portfolio demonstration router',
-                'status' => 'not_trained',
-                'limitations' => 'Fixed reviewed samples only. Fixture checks will not be presented as a general accuracy estimate.',
+                'status' => $demoApproved ? 'demo_approved' : 'not_trained',
+                'metrics' => $demoApproved ? [
+                    'intended_mode' => 'curated_demo',
+                    'approved_samples' => 144,
+                    'visible_fixture_checks' => 12,
+                    'hidden_fixture_checks' => 12,
+                    'fixture_only' => true,
+                ] : ['intended_mode' => 'curated_demo', 'fixture_only' => true],
+                'limitations' => 'Fixed approved samples only. Passing fixture checks are not a general accuracy estimate.',
                 'serving_default' => false,
             ],
         );

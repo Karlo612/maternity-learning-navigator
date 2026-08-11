@@ -73,6 +73,6 @@ Approval scope: Project-owner governance decision only. The project owner subseq
 
 Project-owner agreement cannot release the data unless the project owner also has the relevant competence and records it transparently. The following remain separate:
 
-- The identified Sorani reviewer must still verify every replacement Sorani question, category label, interface string, safety message, terminology choice and bidirectional presentation before changing the language decision from `changes_required` to `approved`.
+- The identified Sorani reviewer subsequently approved the exact fixed curated-demo questions, category/interface catalogue and RTL presentation. The full production Sorani dataset, evaluation fixtures, safety messages and terminology still require separate exact-checksum review before changing the production language decision from `changes_required` to `approved`.
 - A qualified clinical-safety reviewer must review the boundary, hazard log, safety-bypass phrases, urgent-capable examples and public safety wording.
 - Each sign-off must name the reviewed dataset checksum, interface/build version, decision, limitations, date and independently verifiable evidence reference using `governance/REVIEW_SIGNOFF_TEMPLATE.md`.

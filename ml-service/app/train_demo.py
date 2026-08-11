@@ -14,6 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import FeatureUnion, Pipeline
 
 from .governance import EXPECTED_CATEGORIES, sha256_file
+from .text_processing import normalize_demo_text
 
 
 EXPECTED_LOCALES = {"en", "ckb"}
@@ -99,10 +100,17 @@ def train(dataset: Path, review_manifest: Path, interface_catalog: Path, output:
     hidden_rows = [row for row in rows if row.split == "hidden"]
     router = Pipeline([
         ("features", FeatureUnion([
-            ("word", TfidfVectorizer(ngram_range=(1, 2), min_df=1, sublinear_tf=True)),
-            ("char", TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1, sublinear_tf=True)),
-        ])),
-        ("classifier", LogisticRegression(max_iter=3_000, class_weight="balanced", random_state=41)),
+            ("word", TfidfVectorizer(
+                ngram_range=(1, 2), min_df=1, sublinear_tf=True, preprocessor=normalize_demo_text,
+            )),
+            ("char", TfidfVectorizer(
+                analyzer="char_wb", ngram_range=(2, 5), min_df=1,
+                sublinear_tf=True, preprocessor=normalize_demo_text,
+            )),
+        ], transformer_weights={"word": 2, "char": 3})),
+        ("classifier", LogisticRegression(
+            max_iter=3_000, class_weight="balanced", random_state=41, C=1,
+        )),
     ])
     router.fit([row.question for row in train_rows], [row.category for row in train_rows])
 
@@ -153,6 +161,14 @@ def train(dataset: Path, review_manifest: Path, interface_catalog: Path, output:
             "ckb": {"high": .60, "medium": .20, "unsupported": .10},
         },
         "fixture_checks": {"visible": visible_results, "hidden": hidden_results},
+        "training_configuration": {
+            "algorithm": "word-and-character TF-IDF with logistic regression",
+            "word_ngram_range": [1, 2],
+            "character_ngram_range": [2, 5],
+            "feature_weights": {"word": 2, "character": 3},
+            "random_seed": 41,
+            "topic_synonym_normalisation": {"managed|managing|management": "pain relief"},
+        },
         "limitations": "Fixed portfolio demonstration only; fixture checks are not a general accuracy estimate.",
     }
     (output / "manifest.json").write_text(

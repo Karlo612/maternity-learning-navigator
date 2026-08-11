@@ -4,7 +4,7 @@ A recruiter-facing demonstration of a real PHP → Python → model → LIME →
 
 The project routes only fixed, reviewed maternity-learning examples. It does **not** diagnose, triage, recommend treatment, predict outcomes, translate clinical advice or generate healthcare answers. It is an independent portfolio project and is not affiliated with or endorsed by the NHS or The Real Birth Company.
 
-> **Current release state:** implementation complete; exact bilingual content review remains open. No demo artifact is served and unrestricted free text remains locked until its separate production gates pass.
+> **Current release state:** the exact-checksum bilingual curated demo is approved and its model artifact is built into the private FastAPI image. Unrestricted free text remains locked until its separate production gates pass.
 
 ## What a recruiter can inspect
 
@@ -17,9 +17,11 @@ Within the application a recruiter can:
 5. request a deterministic LIME explanation of the actual predicted class; and
 6. execute live REST and GraphQL calls from the in-browser API exhibit.
 
-While review is open, the same journey transparently shows `changes_required` and releases no sample or model. That is intentional fail-closed behavior, not a simulated result.
+If the signed content, model artifact or release sign-off drifts, the same journey releases no sample or model. That is intentional fail-closed behavior, not a simulated result.
 
 ![Maternity Learning Navigator homepage](docs/screenshots/home.png)
+
+![Predicted-class LIME explanation](docs/screenshots/lime.png)
 
 ## Architecture
 
@@ -100,7 +102,7 @@ LIME is labelled local, approximate, non-causal and explanatory of topic routing
 
 Across six categories and two languages this produces 120 training rows, 12 visible fixtures and 12 hidden fixtures. Paraphrase families cannot cross those splits.
 
-The Sorani text is currently labelled `draft_machine_assisted`. Karlo Nahro is recorded as a native Sorani speaker and professional translator, but the exact 72 Sorani questions, interface catalogue and RTL presentation are still `changes_required` until their current checksums are reviewed. Clinical-safety review remains independently pending and continues to block production free text.
+The CSV retains `draft_machine_assisted` as its immutable authoring provenance. Karlo Nahro, a native Sorani speaker and professional translator, approved the exact 72 Sorani questions, interface catalogue and curated-demo RTL presentation. Importing the signed manifest derives `human_reviewed` and `approved` state in MySQL without mutating the signed source. Clinical-safety review remains independently pending and continues to block production free text.
 
 Review evidence:
 
@@ -179,7 +181,7 @@ The repository contains no Compose password, service token or production secret.
 ```bash
 python3 scripts/validate_resources.py
 
-docker build -t maternity-learning-navigator-ml ml-service
+docker build -f ml-service/Dockerfile -t maternity-learning-navigator-ml .
 docker run --rm -v "$PWD/ml-service:/service" -w /service \
   maternity-learning-navigator-ml python -m pytest -q
 
@@ -194,8 +196,8 @@ npm run test:e2e
 
 Current verified checks:
 
-- 11 Python tests: review/checksum gates, artifact isolation, tamper refusal, predicted-class LIME, reproducibility and Sorani source order
-- 13 Laravel tests: migrations, sample-ID-only contracts, free-text lockout, explanation binding, persistence boundaries, locale fallback, OpenAPI and failure contracts
+- 13 Python tests: review/checksum gates, all 24 release fixtures, artifact isolation, tamper refusal, predicted-class LIME, reproducibility, latency gates and Sorani source order
+- 15 Laravel tests: migrations, sample-ID-only contracts, immutable approval import, free-text lockout, explanation binding, persistence boundaries, locale fallback, OpenAPI and failure contracts
 - 5 Playwright journeys: English, Sorani/RTL, live REST/GraphQL, offline refusal and axe accessibility
 - production frontend and both deployable containers build successfully
 
@@ -218,7 +220,7 @@ CI uses MySQL 8.4 integration tests, validates governed files, audits Composer/n
 ## Honest limitations and follow-on work
 
 - The curated corpus supports fixed fixture demonstrations only. It cannot support a general accuracy claim.
-- Public demo serving waits for approval of the exact English/Sorani dataset and interface checksums.
+- The approved curated model passes all 12 visible and 12 hidden fixed release fixtures; these checks are not a statistical estimate of performance on new questions.
 - Unrestricted free text additionally requires the full 600-row bilingual dataset, 120 evaluation fixtures and independent clinical-safety review.
 - XLM-R remains unserved until the governed production dataset exists and every original performance/release threshold passes.
-- `maternity.karlonahro.com`, public repository visibility and portfolio-site integration are release steps after the curated review gate passes.
+- `maternity.karlonahro.com`, public repository visibility and portfolio-site integration remain deployment and publishing steps.

@@ -88,7 +88,7 @@ function AppHeader({ locale, setLocale }: { locale: Locale; setLocale: (value: L
             )}</nav>
             <label className="sr-only" htmlFor="language">Interface language</label>
             <select id="language" className="language-select" value={locale} onChange={event => setLocale(event.target.value as Locale)}>
-                <option value="en">English</option><option value="ckb">کوردی سۆرانی · {messages.ckb.reviewState}</option>
+                <option value="en">English</option><option value="ckb">کوردی سۆرانی</option>
             </select>
         </div></header>
     </>;
@@ -174,7 +174,7 @@ function DemoPanel({ locale, online }: { locale: Locale; online: boolean }) {
     };
 
     return <div className="router-card">
-        <div className="demo-kicker"><span><CheckCircle2 size={15} />{copy.curatedDemo}</span><span>{copy.reviewState}</span></div>
+        <div className="demo-kicker"><span><CheckCircle2 size={15} />{copy.curatedDemo}</span><span><code>{reviewState}</code></span></div>
         <h2>{copy.demoTitle}</h2><p>{copy.demoCopy}</p>
         {samples.length > 0 ? <>
             <fieldset className="sample-list"><legend>{copy.chooseSample}</legend>{samples.map(sample =>
@@ -224,8 +224,8 @@ function Evidence() {
         ['Governance validator', 'scripts/validate_resources.py'],
     ];
     return <main className="container"><div className="page-hero"><span className="eyebrow"><FileCheck2 size={15} />Evidence before claims</span><h1>Technical and governance evidence</h1><p>The curated route demonstrates the architecture. It does not establish general model accuracy, clinical validity or approval.</p></div>
-        <div className="evidence-grid"><div className="evidence-card"><div className="metric">144</div><div className="metric-label">Governed draft samples</div></div><div className="evidence-card"><div className="metric">12 + 12</div><div className="metric-label">Visible + hidden fixtures</div></div><div className="evidence-card"><div className="metric">0</div><div className="metric-label">Clinical claims</div></div></div>
-        <section className="section two-column"><div className="content-card"><h2>What fixture checks prove</h2><p>After exact-text approval, all fixed visible and hidden examples must return their reviewed category. That proves the deployed path behaves as specified for those fixtures only.</p><p className="notice">No macro-F1, calibration or maternity-domain performance claim is made from this small corpus.</p></div><div className="locked-panel"><h3><LockKeyhole size={19} />Production route still locked</h3><p>The 600-row bilingual training set, 120 evaluation fixtures, independent clinical-safety review and XLM-R comparison remain follow-on gates.</p></div></section>
+        <div className="evidence-grid"><div className="evidence-card"><div className="metric">144</div><div className="metric-label">Checksum-approved demo samples</div></div><div className="evidence-card"><div className="metric">12 + 12</div><div className="metric-label">Passing visible + hidden fixtures</div></div><div className="evidence-card"><div className="metric">&lt;0.1s</div><div className="metric-label">Local-container LIME p95</div></div></div>
+        <section className="section two-column"><div className="content-card"><h2>What fixture checks prove</h2><p>All fixed visible and hidden examples return their reviewed category. The local single-user container check measured classification p95 at 3.7 ms and LIME p95 at 84 ms across repeated calls.</p><p className="notice">These are release-fixture and local engineering measurements, not macro-F1, calibration, clinical validity or maternity-domain performance.</p></div><div className="locked-panel"><h3><LockKeyhole size={19} />Production route still locked</h3><p>The 600-row bilingual training set, 120 evaluation fixtures, independent clinical-safety review and XLM-R comparison remain follow-on gates.</p></div></section>
         <section className="section"><div className="section-heading"><div><span className="eyebrow">Inspect the implementation</span><h2>Evidence linked to code</h2></div></div><div className="source-grid">{links.map(([label, path]) => <a className="evidence-code-link" href={`${repo}/blob/main/${path}`} target="_blank" rel="noreferrer" key={path}><Code2 size={18} /><span><strong>{label}</strong><code>{path}</code></span><ExternalLink size={15} /></a>)}</div></section>
         <section className="section"><div className="section-heading"><div><span className="eyebrow">Vacancy alignment</span><h2>PHP, APIs and responsible XAI</h2></div></div><div className="evidence-grid">{[
             ['PHP · MySQL', 'Laravel 13 owns validation, sample governance, telemetry and source relationships in MySQL 8.4.'],
@@ -275,9 +275,9 @@ function ApiDocs() {
     const [method, url] = firstLine.split(' ');
     const bodyText = bodyLines.join('\n').trim();
     const snippets = {
-        curl: `curl -sS -X ${method} '${window.location.origin}${url}' -H 'Accept: application/json'${bodyText ? ` \\\n+  -H 'Content-Type: application/json' \\\n+  --data '${bodyText.replaceAll("'", "'\\''")}'` : ''}`,
+        curl: `curl -sS -X ${method} '${window.location.origin}${url}' -H 'Accept: application/json'${bodyText ? ` \\\n  -H 'Content-Type: application/json' \\\n  --data '${bodyText.replaceAll("'", "'\\''")}'` : ''}`,
         javascript: `const response = await fetch('${url}', {\n  method: '${method}',\n  headers: { Accept: 'application/json'${bodyText ? ", 'Content-Type': 'application/json'" : ''} }${bodyText ? `,\n  body: JSON.stringify(${bodyText})` : ''}\n});\nconsole.log(await response.json());`,
-        php: `use Illuminate\\Support\\Facades\\Http;\n\n$response = Http::acceptJson()${bodyText ? `->${method.toLowerCase()}('${url}', ${bodyText})` : `->${method.toLowerCase()}('${url}')`};\n$response->throw()->json();`,
+        php: `use Illuminate\\Support\\Facades\\Http;\n\n$response = Http::acceptJson()${bodyText ? `\n    ->withBody(${JSON.stringify(bodyText)}, 'application/json')` : ''}\n    ->send('${method}', '${window.location.origin}${url}');\n\n$response->throw()->json();`,
     };
     const copySnippet = async () => { await navigator.clipboard.writeText(snippets[snippet]); setCopied(true); setTimeout(() => setCopied(false), 1200); };
 

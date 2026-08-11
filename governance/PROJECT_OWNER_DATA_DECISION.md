@@ -16,6 +16,6 @@
 
 ## Limits of this decision
 
-This is a project-owner decision. It does not make any row training-eligible and did not itself satisfy either independent release gate. The project owner subsequently declared competence as a native Sorani speaker and professional translator; the separate language review record remains `changes_required` because the replacement corpus and translated release materials do not yet exist. No clinical-safety competence has been asserted. The application must continue to fail closed until the complete reviews, dataset and model-performance thresholds pass.
+This is a project-owner decision. It does not make any row training-eligible and did not itself satisfy either production release gate. The project owner subsequently declared competence as a native Sorani speaker and professional translator and separately approved the fixed curated-demo corpus. The production language record remains `changes_required` because the full 300-row Sorani production corpus, evaluation fixtures and reviewed safety materials do not yet exist. No clinical-safety competence has been asserted. Unrestricted routing must continue to fail closed until the complete production reviews, dataset and model-performance thresholds pass.
 
 Approval was supplied by the project owner in the project task conversation. An independently verifiable approval reference may be added later if required for external audit.

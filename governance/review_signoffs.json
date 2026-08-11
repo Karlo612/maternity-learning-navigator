@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-11T00:00:00+01:00",
+  "updated_at": "2026-08-11T18:52:00+01:00",
   "signoffs": [
     {
       "gate": "sorani_language",
@@ -8,19 +8,19 @@
       "reviewer_role": "Native Sorani speaker and professional translator",
       "status": "changes_required",
       "evidence_file": "governance/SORANI_LANGUAGE_REVIEW_SIGNOFF.md",
-      "evidence_checksum": "99a3361d811bbf97458e04b4fbb0769a8dd182f82fb82c122090e7925428ca08",
+      "evidence_checksum": "908e5f6df9cd1c0cfa5bc91c954c026d522f808306c11b0264921728b8bca849",
       "reviewed_at": "2026-08-11T00:00:00+01:00",
-      "scope": "Existing candidate-language review only; the curated demo corpus and interface catalogue require exact-text review."
+      "scope": "Production candidate-language gate only; the fixed curated-demo corpus and interface catalogue are approved separately."
     },
     {
       "gate": "curated_demo_sorani",
       "reviewer_name": "Karlo Nahro",
       "reviewer_role": "Native Sorani speaker and professional translator",
-      "status": "changes_required",
-      "evidence_file": "governance/CURATED_DEMO_REVIEW.md",
-      "evidence_checksum": null,
-      "reviewed_at": null,
-      "scope": "All 72 Sorani demo questions, Sorani interface strings and RTL presentation."
+      "status": "approved",
+      "evidence_file": "governance/demo_review_manifest.json",
+      "evidence_checksum": "06e20ba646530f82f3464800f78c407099f294ca80513caad7edbb425a980aa9",
+      "reviewed_at": "2026-08-11T18:52:00+01:00",
+      "scope": "Exact-checksum linguistic and content approval for all 72 Sorani demo questions, the Sorani interface strings and curated-demo RTL presentation; not clinical-safety approval."
     },
     {
       "gate": "clinical_safety",

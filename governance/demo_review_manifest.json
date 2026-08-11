@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "decision": "changes_required",
+  "decision": "approved",
   "reviewer_name": "Karlo Nahro",
   "reviewer_role": "Native Sorani speaker and professional translator",
-  "reviewed_at": null,
+  "reviewed_at": "2026-08-11T18:52:00+01:00",
   "dataset_file": "resources/demo_samples.csv",
   "dataset_sha256": "17a50cafd40f1ba960495542f288e136819f66f2b83f9bd1dbb2afea32bfbba7",
   "interface_file": "app/resources/js/interface-catalog.json",
   "interface_sha256": "91a9887fbd6e173475aa4fddf1d8741521718afc606ee744c6ada3142dc63224",
-  "decision_notes": "Machine-assisted Sorani drafts are prepared for exact-text review. The immutable CSV records pre-sign-off provenance; an approved exact-hash manifest derives human-reviewed approval metadata during import. Training and public demo serving remain blocked until the manifest and release sign-off are both approved."
+  "decision_notes": "Karlo Nahro approved the exact dataset and interface checksums for the fixed curated portfolio demonstration as a native Sorani speaker and professional translator. This is linguistic and content approval, not clinical-safety approval."
 }

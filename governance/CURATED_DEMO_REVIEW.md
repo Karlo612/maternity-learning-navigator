@@ -1,9 +1,10 @@
 # Curated demo bilingual review
 
-Decision: **changes required — exact-text review pending**
+Decision: **approved for the fixed curated portfolio demonstration**
 
 Reviewer: **Karlo Nahro**  
 Role: **Native Sorani speaker and professional translator**
+Reviewed: **11 August 2026 at 18:52 BST**
 
 ## Review scope
 
@@ -38,6 +39,6 @@ The CSV is the exact-text worksheet: `question`, `source_id`, `category`, `trans
 | `after-birth-postnatal` | After birth and postnatal | دوای لەدایکبوون | NHS after-birth and postnatal-check information |
 | `feeding-support` | Feeding support | پشتگیری شیرپێدان | NHS breastfeeding and bottle-feeding support |
 
-The row fields currently describe the pre-sign-off provenance and the manifest decision is `changes_required`. Approval applies to the exact CSV and catalogue checksums, not to this category guide in isolation.
+The row fields describe the pre-sign-off provenance. Karlo Nahro approved the exact CSV and catalogue checksums shown above for this fixed portfolio demonstration. The approval is linguistic and content review only; it is not clinical-safety approval.
 
 The independent clinical-safety gate remains pending and this curated-language review cannot approve unrestricted free-text routing.
