@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "review_status": "pending_clinical_review",
+  "reviewer_role": "Qualified clinical-safety reviewer",
+  "evidence_checksum": null,
+  "phrases": {
+    "en": [],
+    "ckb": []
+  },
+  "notes": "Do not populate or approve this file without the documented clinical-safety review. Phrases trigger a generic safety bypass; they must not contain healthcare advice."
+}

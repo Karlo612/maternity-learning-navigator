@@ -1,0 +1,16 @@
+question_id,language,question,category,source_id,authoring_method,review_status,translation_status,training_eligible,safety_class,paraphrase_family_id
+EN-001,English,"What happens at antenatal appointments?",antenatal-appointments,NHS-006,heading_to_question,pending_content_review,not_applicable,false,educational,antenatal-appointments-01
+EN-002,English,"When should antenatal care begin?",antenatal-appointments,NHS-006,source_faithful_paraphrase,pending_content_review,not_applicable,false,educational,antenatal-appointments-02
+EN-003,English,"What birth-place options can I discuss with my midwife?",birth-place-choices,NHS-005,source_faithful_paraphrase,pending_content_review,not_applicable,false,educational,birth-place-choices-01
+EN-004,English,"What questions can I ask when choosing where to give birth?",birth-place-choices,NHS-005,source_faithful_paraphrase,pending_content_review,not_applicable,false,educational,birth-place-choices-02
+EN-005,English,"What are the stages of labour and birth?",labour-preparation,NHS-003,heading_to_question,pending_content_review,not_applicable,false,educational,labour-preparation-01
+EN-006,English,"What are the signs that labour may have begun?",labour-preparation,NHS-002,heading_to_question,pending_content_review,not_applicable,false,urgent_capable,labour-preparation-02
+EN-007,English,"When should I contact my midwife or maternity unit about possible labour?",labour-preparation,NHS-002,source_faithful_paraphrase,pending_safety_review,not_applicable,false,urgent_capable,labour-preparation-03
+EN-008,English,"What pain-relief options can I discuss for labour?",pain-relief-information,NHS-004,source_faithful_paraphrase,pending_content_review,not_applicable,false,educational,pain-relief-information-01
+EN-009,English,"Where can I get help and support with breastfeeding?",feeding-support,NHS-010,heading_to_question,pending_content_review,not_applicable,false,educational,feeding-support-01
+EN-010,English,"Where can I find NHS bottle-feeding advice?",feeding-support,NHS-011,heading_to_question,pending_content_review,not_applicable,false,educational,feeding-support-02
+EN-011,English,"What usually happens straight after birth?",after-birth-postnatal,NHS-007,heading_to_question,pending_content_review,not_applicable,false,educational,after-birth-postnatal-01
+EN-012,English,"What may happen at a 6-week postnatal check?",after-birth-postnatal,NHS-009,source_faithful_paraphrase,pending_content_review,not_applicable,false,educational,after-birth-postnatal-02
+KU-001,Kurdish Sorani,"هەموو منداڵێک تووشی کۆمەڵە گرفتی مەی وەرگرتنی کۆرپە دەبێت ئەگەر دایکەکە لە کاتی دووگیانیدا مەی خواردبێتەوە؟",pregnancy_health,SOR-002,source_extracted_question,pending_sorani_human_review,source_published_unverified,false,clinical,pregnancy-health-01
+KU-002,Kurdish Sorani,"چۆن بتوانم بزانم ئایا کۆرپە/منداڵەکەم کۆمەڵە گرفتی مەی وەرگرتنی کۆرپەی هەیە؟",pregnancy_health,SOR-002,source_extracted_question,pending_sorani_human_review,source_published_unverified,false,clinical,pregnancy-health-02
+KU-003,Kurdish Sorani,"ئەی ئەگەر دیسانەوە جوڵەی کۆرپەکەم کەمی کردەوە؟",fetal_movement,SOR-003,source_extracted_question,pending_sorani_human_review,source_published_unverified,false,urgent,fetal-movement-01
