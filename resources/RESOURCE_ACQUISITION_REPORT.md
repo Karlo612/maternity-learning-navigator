@@ -25,7 +25,7 @@ The public source registry contains only the authoritative health, governance, a
 
 ## Model decision
 
-The initial release will compare a transparent TF-IDF/logistic-regression baseline with an XLM-R candidate for question routing. XLM-R has published evidence of being used on Sorani text, but that evidence concerns dialect identification and cannot be treated as evidence of maternity-domain accuracy. Model weights are not yet downloaded because there is no approved labelled dataset on which to train or evaluate them.
+The curated portfolio release trains a transparent TF-IDF/logistic-regression router inside the model container from the checksum-approved demo corpus. Its fixed-fixture checks cannot be treated as general accuracy evidence. The separate production phase will compare a governed baseline with an XLM-R candidate. XLM-R production weights are not downloaded because the full production dataset is not approved; published Sorani feasibility evidence concerns dialect identification and cannot establish maternity-domain accuracy.
 
 The initial product will not use an LLM to compose healthcare answers. It will return reviewed resource links and explanations of routing features. This directly reduces hallucination risk while still demonstrating NLP, API deployment and LIME.
 

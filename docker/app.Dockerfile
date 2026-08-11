@@ -23,8 +23,10 @@ COPY governance/review_signoffs.json /governance/review_signoffs.json
 COPY governance/demo_review_manifest.json /governance/demo_review_manifest.json
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
+COPY docker/app-entrypoint.sh /usr/local/bin/app-entrypoint
 RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
     && php artisan package:discover --ansi \
+    && chmod 755 /usr/local/bin/app-entrypoint \
     && chown -R www-data:www-data storage bootstrap/cache
 EXPOSE 8080
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["/usr/local/bin/app-entrypoint"]

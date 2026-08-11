@@ -6,6 +6,8 @@ The project routes only fixed, reviewed maternity-learning examples. It does **n
 
 > **Current release state:** the exact-checksum bilingual curated demo is approved and its model artifact is built into the private FastAPI image. Unrestricted free text remains locked until its separate production gates pass.
 
+> **Deployment state:** the complete three-container topology passes CI and local smoke tests. The public Railway deployment and custom domain are the remaining operational release steps; no cloud-operation claim is made until those checks pass.
+
 ## What a recruiter can inspect
 
 Within the application a recruiter can:
@@ -76,7 +78,7 @@ POST /api/v1/demo/classifications/{requestId}/explanation
 
 ```json
 {
-  "sample_id": "en-antenatal-11"
+  "sample_id": "DEMO-EN-ANT-11"
 }
 ```
 
@@ -169,6 +171,19 @@ The live API page displays the exact request, response, HTTP status and elapsed 
 - Offline mode retains the application shell and registered source metadata but disables model calls.
 - Governance is informed by [NHS clinical decision-support guidance](https://www.england.nhs.uk/long-read/supporting-clinical-decisions-with-health-information-technology/), [DCB0129](https://digital.nhs.uk/data-and-information/information-standards/governance/latest-activity/standards-and-collections/dcb0129-clinical-risk-management-its-application-in-the-manufacture-of-health-it-systems/) and [MHRA software/AI guidance](https://www.gov.uk/government/publications/software-and-artificial-intelligence-ai-as-a-medical-device), without claiming certification or formal compliance.
 
+## Deployment and offline architecture
+
+The deployable boundary is documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Docker Compose and CI exercise the same three roles intended for Railway: a public Laravel container, a private authenticated FastAPI container and MySQL 8.4 persistent storage.
+
+Offline behavior is deliberately narrower than cloud behavior. The service worker caches the application shell and reviewed source-directory metadata; classification, explanation responses and user text are excluded. The interface disables model actions when connectivity is unavailable.
+
+| Evidence | Current state |
+| --- | --- |
+| Reproducible app and model containers | Passing locally and in GitHub Actions |
+| MySQL 8.4 integration and persistent-volume topology | Passing locally and in GitHub Actions |
+| Offline PWA refusal and retained source metadata | Passing Playwright journey |
+| Railway private networking, managed persistence and custom domain | Pending live deployment verification |
+
 ## Local setup
 
 Prerequisites: Docker and Docker Compose.
@@ -231,10 +246,19 @@ CI uses MySQL 8.4 integration tests, validates governed files, audits Composer/n
 | UI and communication | 90-second recruiter journey, accessible explanation, API exhibit, evidence page and plain-language boundaries |
 | Healthcare/regulatory awareness | Educational intended purpose, explicit exclusions, hazard log and no clinical-validation or endorsement claims |
 
+## Complementary portfolio evidence
+
+This repository is the primary PHP, API, multilingual NLP and LIME demonstration. Two separate public projects provide evidence outside its deliberately bounded scope:
+
+- [SHAP feature importance for Pima Diabetes classification](https://github.com/Karlo612/Feature-Importance-Demo-with-Classification-and-PIMA-Diabetes): TreeExplainer, global and patient-level attribution, dependence analysis and contrasting-patient waterfall plots.
+- [Brain MRI tumour classification ensemble](https://github.com/Karlo612/brain-mri-tumor-ensemble): Xception, VGG16 and EfficientNetB0 transfer learning, calibrated ensemble evaluation and Grad-CAM.
+
+No public repository is currently presented here as complete LLM engineering evidence. The maternity demonstration intentionally excludes generated healthcare answers; an LLM project should be linked only after its implementation, evaluation, safety controls and authorship are recruiter-ready.
+
 ## Honest limitations and follow-on work
 
 - The curated corpus supports fixed fixture demonstrations only. It cannot support a general accuracy claim.
 - The approved curated model passes all 12 visible and 12 hidden fixed release fixtures; these checks are not a statistical estimate of performance on new questions.
 - Unrestricted free text additionally requires the full 600-row bilingual dataset, 120 evaluation fixtures and independent clinical-safety review.
 - XLM-R remains unserved until the governed production dataset exists and every original performance/release threshold passes.
-- `maternity.karlonahro.com`, public repository visibility and portfolio-site integration remain deployment and publishing steps.
+- `maternity.karlonahro.com` and portfolio-site integration remain deployment steps; this repository is already public.

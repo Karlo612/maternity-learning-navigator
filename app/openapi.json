@@ -44,7 +44,7 @@
     "/demo/classifications": {
       "post": {
         "tags": ["Curated demo"], "summary": "Route one approved fixed sample through Laravel and private FastAPI",
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoClassificationInput" }, "example": { "sample_id": "en-antenatal-11" } } } },
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoClassificationInput" }, "example": { "sample_id": "DEMO-EN-ANT-11" } } } },
         "responses": {
           "200": { "description": "Fixture matched its reviewed category", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DemoClassification" } } } },
           "404": { "$ref": "#/components/responses/NotFound" }, "409": { "$ref": "#/components/responses/Conflict" }, "422": { "$ref": "#/components/responses/Validation" }, "429": { "$ref": "#/components/responses/Throttled" }, "503": { "$ref": "#/components/responses/Unavailable" }
