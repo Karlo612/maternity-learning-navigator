@@ -1,16 +1,16 @@
 question_id,proposed_decision,reviewer_decision,corrected_question,corrected_category,reviewer_notes,reviewer_role,review_date
-EN-001,retain_pending_content_review,,,,,,
-EN-002,retain_pending_content_review,,,,,,
-EN-003,retain_pending_content_review,,,,,,
-EN-004,retain_pending_content_review,,,,,,
-EN-005,retain_pending_content_review,,,,,,
-EN-006,refer_clinical_safety_review,,,,,,
-EN-007,refer_clinical_safety_review,,,,,,
-EN-008,retain_pending_content_review,,,,,,
-EN-009,retain_pending_content_review,,,,,,
-EN-010,retain_pending_content_review,,,,,,
-EN-011,retain_pending_content_review,,,,,,
-EN-012,retain_pending_content_review,,,,,,
-KU-001,exclude_outside_taxonomy_and_clinical_scope,,,,,,
-KU-002,exclude_outside_taxonomy_and_clinical_scope,,,,,,
-KU-003,exclude_outside_taxonomy_and_urgent_scope,,,,,,
+EN-001,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-002,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-003,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-004,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-005,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-006,refer_clinical_safety_review,owner_agreed,,,Not approved for training or release,project_owner,2026-08-11
+EN-007,refer_clinical_safety_review,owner_agreed,,,Not approved for training or release,project_owner,2026-08-11
+EN-008,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-009,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-010,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-011,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+EN-012,retain_pending_content_review,owner_agreed,,,Independent content review remains required,project_owner,2026-08-11
+KU-001,exclude_outside_taxonomy_and_clinical_scope,owner_agreed_exclude,,,Retain provenance audit only; do not train or publish,project_owner,2026-08-11
+KU-002,exclude_outside_taxonomy_and_clinical_scope,owner_agreed_exclude,,,Retain provenance audit only; do not train or publish,project_owner,2026-08-11
+KU-003,exclude_outside_taxonomy_and_urgent_scope,owner_agreed_exclude,,,Retain provenance audit only; do not train or publish,project_owner,2026-08-11

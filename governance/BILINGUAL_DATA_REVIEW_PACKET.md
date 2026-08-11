@@ -59,13 +59,15 @@ The project owner may record agreement or request changes for these governance d
 3. Exclude KU-001–KU-003 from this router’s dataset while retaining their provenance audit records.
 4. Build the missing Sorani corpus only within the same six categories, with every string reviewed by a competent Sorani reviewer.
 
-Project-owner name:
+Project-owner name: Karlo Nahro
 
-Decision: agree / changes required / reject
+Decision: Agreed to decisions 1–4
 
-Requested changes:
+Requested changes: None
 
-Decision date:
+Decision date: 11 August 2026
+
+Approval scope: Project-owner governance decision only. No Sorani-language or clinical-safety competence was asserted, so neither independent release gate is satisfied by this decision.
 
 ## Independent sign-offs still required
 
