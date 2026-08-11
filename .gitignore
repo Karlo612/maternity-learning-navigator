@@ -6,7 +6,7 @@ app/node_modules/
 app/public/build/
 app/storage/logs/*.log
 app/database/database.sqlite
-models/
+/models/
 ml-service/.pytest_cache/
 **/__pycache__/
 *.pyc

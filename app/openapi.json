@@ -1,0 +1,44 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Maternity Learning Navigator API",
+    "version": "1.0.0-review-gated",
+    "description": "Educational resource routing only. This API does not provide diagnosis, triage, treatment or outcome prediction."
+  },
+  "servers": [{"url": "/api/v1"}],
+  "paths": {
+    "/classifications": {
+      "post": {
+        "summary": "Route an English or reviewed Sorani question",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ClassificationInput"}}}
+        },
+        "responses": {"200": {"description": "Routing result or review-gate response"}}
+      }
+    },
+    "/classifications/{requestId}/explanation": {
+      "post": {
+        "summary": "Explain the original routing decision with LIME",
+        "parameters": [{"name": "requestId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}}],
+        "responses": {"200": {"description": "Transient local feature weights"}}
+      }
+    },
+    "/resources": {"get": {"summary": "List registered resources", "responses": {"200": {"description": "Source records"}}}},
+    "/model-card": {"get": {"summary": "Read model status, limits and release gates", "responses": {"200": {"description": "Model card"}}}},
+    "/feedback": {"post": {"summary": "Store fixed-choice feedback without free text", "responses": {"200": {"description": "Stored"}}}},
+    "/health": {"get": {"summary": "Application and model-service health", "responses": {"200": {"description": "Health status"}}}}
+  },
+  "components": {
+    "schemas": {
+      "ClassificationInput": {
+        "type": "object",
+        "required": ["question", "locale"],
+        "properties": {
+          "question": {"type": "string", "minLength": 3, "maxLength": 500},
+          "locale": {"type": "string", "enum": ["en", "ckb"]}
+        }
+      }
+    }
+  }
+}

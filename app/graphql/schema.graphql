@@ -1,0 +1,36 @@
+type Query {
+  categories(locale: String = "en"): [Category!]!
+    @field(resolver: "App\\GraphQL\\Queries\\Categories")
+  resources(category: String, locale: String = "en"): [Source!]!
+    @field(resolver: "App\\GraphQL\\Queries\\Resources")
+  source(code: ID!): Source
+    @field(resolver: "App\\GraphQL\\Queries\\SourceByCode")
+  modelVersion: ModelVersion
+    @field(resolver: "App\\GraphQL\\Queries\\CurrentModelVersion")
+}
+
+type Category {
+  slug: ID!
+  label: String!
+  description: String!
+}
+
+type Source {
+  code: ID!
+  organisation: String!
+  title: String!
+  url: String!
+  language: String!
+  category: String!
+  reuseStatus: String!
+  lastVerified: String!
+}
+
+type ModelVersion {
+  modelId: ID!
+  version: String!
+  role: String!
+  status: String!
+  servingDefault: Boolean!
+  limitations: String!
+}
