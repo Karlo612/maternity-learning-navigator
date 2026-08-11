@@ -12,3 +12,4 @@ ml-service/.pytest_cache/
 *.pyc
 coverage/
 playwright-report/
+app/test-results/

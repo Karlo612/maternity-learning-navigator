@@ -1,6 +1,13 @@
 .git
+.env
+.env.*
+!.env.compose.example
+app/.env
 app/vendor
 app/node_modules
+app/public/build
+app/test-results
+app/playwright-report
 app/storage/logs/*
 app/database/database.sqlite
 ml-service/.pytest_cache

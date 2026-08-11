@@ -11,21 +11,24 @@ services:
     environment:
       APP_ENV: local
       APP_NAME: Maternity Learning Navigator
-      APP_KEY: base64:rWcqHSZ1rqm8wFeAi3ey4bWSwOAxJRrbNK3gEKVuhu8=
+      APP_KEY: ${COMPOSE_APP_KEY:?Set COMPOSE_APP_KEY in .env}
       APP_DEBUG: "true"
       APP_URL: http://localhost:8080
       CORS_ALLOWED_ORIGINS: http://localhost:8080
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: maternity_navigator
-      DB_USERNAME: maternity_app
-      DB_PASSWORD: local-development-password
+      DB_DATABASE: ${COMPOSE_DB_DATABASE:?Set COMPOSE_DB_DATABASE in .env}
+      DB_USERNAME: ${COMPOSE_DB_USERNAME:?Set COMPOSE_DB_USERNAME in .env}
+      DB_PASSWORD: ${COMPOSE_DB_PASSWORD:?Set COMPOSE_DB_PASSWORD in .env}
       GOVERNANCE_RESOURCES_PATH: /governance
+      GOVERNANCE_SIGNOFFS_PATH: /governance/review_signoffs.json
+      DEMO_REVIEW_MANIFEST_PATH: /governance/demo_review_manifest.json
+      INTERFACE_CATALOG_PATH: /var/www/html/resources/js/interface-catalog.json
       FREE_TEXT_ENABLED: "false"
       ML_SERVICE_URL: http://ml:8000
-      ML_SERVICE_TOKEN: local-development-token
-      QUESTION_HMAC_KEY: local-development-hmac-key
+      ML_SERVICE_TOKEN: ${COMPOSE_ML_TOKEN:?Set COMPOSE_ML_TOKEN in .env}
+      QUESTION_HMAC_KEY: ${COMPOSE_QUESTION_HMAC_KEY:?Set COMPOSE_QUESTION_HMAC_KEY in .env}
     depends_on:
       mysql:
         condition: service_healthy
@@ -42,12 +45,14 @@ services:
     build:
       context: ml-service
     environment:
-      ML_SERVICE_TOKEN: local-development-token
+      ML_SERVICE_TOKEN: ${COMPOSE_ML_TOKEN:?Set COMPOSE_ML_TOKEN in .env}
       MODEL_ARTIFACT_DIR: /models
+      DEMO_MODEL_ARTIFACT_DIR: /demo-model
     volumes:
       - model_artifacts:/models:ro
+      - demo_model_artifacts:/demo-model:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/v1/health',headers={'Authorization':'Bearer local-development-token'}); urllib.request.urlopen(r)"]
+      test: ["CMD", "python", "-c", "import os,urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/v1/health',headers={'Authorization':'Bearer '+os.environ['ML_SERVICE_TOKEN']}); urllib.request.urlopen(r)"]
       interval: 15s
       timeout: 5s
       retries: 8
@@ -55,15 +60,15 @@ services:
   mysql:
     image: mysql:8.4@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
     environment:
-      MYSQL_DATABASE: maternity_navigator
-      MYSQL_USER: maternity_app
-      MYSQL_PASSWORD: local-development-password
-      MYSQL_ROOT_PASSWORD: local-root-development-password
+      MYSQL_DATABASE: ${COMPOSE_DB_DATABASE:?Set COMPOSE_DB_DATABASE in .env}
+      MYSQL_USER: ${COMPOSE_DB_USERNAME:?Set COMPOSE_DB_USERNAME in .env}
+      MYSQL_PASSWORD: ${COMPOSE_DB_PASSWORD:?Set COMPOSE_DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${COMPOSE_DB_ROOT_PASSWORD:?Set COMPOSE_DB_ROOT_PASSWORD in .env}
     command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-plocal-root-development-password"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\""]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -71,3 +76,4 @@ services:
 volumes:
   mysql_data:
   model_artifacts:
+  demo_model_artifacts:

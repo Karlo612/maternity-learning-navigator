@@ -7,5 +7,6 @@ RUN composer install --prefer-dist --no-interaction --no-scripts
 
 COPY app/ ./
 COPY resources /workspace/resources
+COPY governance /workspace/governance
 
 CMD ["php", "artisan", "test"]

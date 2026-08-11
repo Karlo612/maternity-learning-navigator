@@ -11,32 +11,130 @@ jobs:
   governance:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - run: python scripts/validate_resources.py
+      - run: jq empty app/openapi.json app/resources/js/interface-catalog.json governance/review_signoffs.json governance/demo_review_manifest.json
 
-  application:
+  application-mysql:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: app } }
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: maternity_navigator_test
+          MYSQL_USER: navigator_test
+          MYSQL_PASSWORD: navigator_test_password
+          MYSQL_ROOT_PASSWORD: navigator_root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pnavigator_root_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    defaults:
+      run:
+        working-directory: app
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:rWcqHSZ1rqm8wFeAi3ey4bWSwOAxJRrbNK3gEKVuhu8=
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: maternity_navigator_test
+      DB_USERNAME: navigator_test
+      DB_PASSWORD: navigator_test_password
+      FREE_TEXT_ENABLED: "false"
+      ML_SERVICE_TOKEN: test-token
+      QUESTION_HMAC_KEY: test-hmac-key
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
-        with: { php-version: "8.4", extensions: mbstring, sqlite, pdo_sqlite }
-      - uses: actions/setup-node@v4
-        with: { node-version: "24", cache: npm, cache-dependency-path: app/package-lock.json }
+        with:
+          php-version: "8.4"
+          extensions: mbstring, pdo_mysql, intl
+          coverage: none
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
       - run: composer install --no-interaction --prefer-dist
       - run: npm ci
       - run: npm run build
-      - run: cp .env.example .env && php artisan key:generate
       - run: php artisan test
+      - run: composer audit --locked
+      - run: npm audit --audit-level=high
 
   model-service:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: ml-service } }
+    defaults:
+      run:
+        working-directory: ml-service
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12", cache: pip, cache-dependency-path: ml-service/requirements.runtime.lock.txt }
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ml-service/requirements.runtime.lock.txt
       - run: pip install --requirement requirements.runtime.lock.txt
       - run: python -m pytest -q
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  container-smoke:
+    runs-on: ubuntu-latest
+    needs: [governance, application-mysql, model-service, secret-scan]
+    env:
+      COMPOSE_DB_DATABASE: maternity_navigator
+      COMPOSE_DB_USERNAME: maternity_app
+      COMPOSE_DB_PASSWORD: ci-local-database-password
+      COMPOSE_DB_ROOT_PASSWORD: ci-local-root-password
+      COMPOSE_APP_KEY: base64:rWcqHSZ1rqm8wFeAi3ey4bWSwOAxJRrbNK3gEKVuhu8=
+      COMPOSE_ML_TOKEN: ci-local-ml-token
+      COMPOSE_QUESTION_HMAC_KEY: ci-local-hmac-key
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Build the deployable containers
+        run: docker compose build app ml
+      - name: Start the private service topology
+        run: docker compose up --detach mysql ml app
+      - name: Apply the schema and import governed records
+        run: docker compose exec -T app php artisan migrate --force && docker compose exec -T app php artisan db:seed --force
+      - name: Smoke-test public and private boundaries
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8080/api/v1/health
+          curl --fail --silent --show-error 'http://127.0.0.1:8080/api/v1/demo/samples?locale=en'
+          curl --fail --silent --show-error http://127.0.0.1:8080/api/v1/openapi.json
+          curl --fail --silent --show-error -H 'Content-Type: application/json' --data '{"query":"{ categories(locale: \"en\") { slug label } }"}' http://127.0.0.1:8080/graphql
+      - name: Install the pinned browser test runtime
+        working-directory: app
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: Run recruiter, RTL, offline and accessibility journeys
+        working-directory: app
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8080
+        run: npm run test:e2e
+      - name: Show service logs after a failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop the ephemeral stack
+        if: always()
+        run: docker compose down --volumes

@@ -19,6 +19,8 @@ COPY app/ ./
 COPY --from=php_dependencies /build/vendor ./vendor
 COPY --from=frontend /build/public/build ./public/build
 COPY resources /governance
+COPY governance/review_signoffs.json /governance/review_signoffs.json
+COPY governance/demo_review_manifest.json /governance/demo_review_manifest.json
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
