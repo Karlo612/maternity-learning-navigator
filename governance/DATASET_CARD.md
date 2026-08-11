@@ -6,7 +6,7 @@ The governed dataset will contain non-clinical English and Kurdish Sorani questi
 
 ## Current state
 
-- Registered sources: 24
+- Registered sources: 19
 - Candidate questions: 15 (12 English, 3 published-source Sorani)
 - Training-eligible questions: 0
 - Release state: locked pending content, Sorani-language and clinical-safety review
@@ -19,4 +19,4 @@ Train, validation and test partitions are 70/15/15 and grouped by paraphrase fam
 
 ## Limitations
 
-Synthetic question phrasings are not evidence of real-world representativeness. No patient records or Real Birth Company historical data are included. Sorani fluency or XLM-R language coverage does not establish maternity-domain validity.
+Synthetic question phrasings are not evidence of real-world representativeness. No patient records or historical service data are included. Sorani fluency or XLM-R language coverage does not establish maternity-domain validity.

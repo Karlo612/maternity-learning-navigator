@@ -2,7 +2,7 @@
 
 A recruiter-facing demonstration of a real PHP → Python → model → LIME → PHP → React request path, backed by MySQL source provenance and both REST and read-only GraphQL APIs.
 
-The project routes only fixed, reviewed maternity-learning examples. It does **not** diagnose, triage, recommend treatment, predict outcomes, translate clinical advice or generate healthcare answers. It is an independent portfolio project and is not affiliated with or endorsed by the NHS or The Real Birth Company.
+The project routes only fixed, reviewed maternity-learning examples. It does **not** diagnose, triage, recommend treatment, predict outcomes, translate clinical advice or generate healthcare answers. It is an independent portfolio project and is not affiliated with or endorsed by the NHS.
 
 > **Current release state:** the exact-checksum bilingual curated demo is approved and its model artifact is built into the private FastAPI image. Unrestricted free text remains locked until its separate production gates pass.
 
@@ -19,9 +19,24 @@ Within the application a recruiter can:
 
 If the signed content, model artifact or release sign-off drifts, the same journey releases no sample or model. That is intentional fail-closed behavior, not a simulated result.
 
-![Maternity Learning Navigator homepage](docs/screenshots/home.png)
+## Product walkthrough
 
-![Predicted-class LIME explanation](docs/screenshots/lime.png)
+Click any image to inspect it at full size.
+
+<table>
+  <tr>
+    <td width="50%"><strong>Approved English navigator</strong><br><a href="docs/screenshots/home.png"><img src="docs/screenshots/home.png" alt="Approved English navigator"></a></td>
+    <td width="50%"><strong>Predicted-class LIME</strong><br><a href="docs/screenshots/lime.png"><img src="docs/screenshots/lime.png" alt="Predicted-class LIME explanation"></a></td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Sorani routing and RTL</strong><br><a href="docs/screenshots/sorani.png"><img src="docs/screenshots/sorani.png" alt="Sorani routing and RTL interface"></a></td>
+    <td width="50%"><strong>Live REST and GraphQL exhibit</strong><br><a href="docs/screenshots/api.png"><img src="docs/screenshots/api.png" alt="Live REST and GraphQL exhibit"></a></td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Traceable source directory</strong><br><a href="docs/screenshots/sources.png"><img src="docs/screenshots/sources.png" alt="Traceable source directory"></a></td>
+    <td width="50%"><strong>Technical evidence</strong><br><a href="docs/screenshots/evidence.png"><img src="docs/screenshots/evidence.png" alt="Technical and governance evidence"></a></td>
+  </tr>
+</table>
 
 ## Architecture
 
@@ -152,7 +167,6 @@ The live API page displays the exact request, response, HTTP status and elapsed 
 - Model-service access logging is disabled.
 - Sorani results identify English-only source fallback rather than implying translation parity.
 - Offline mode retains the application shell and registered source metadata but disables model calls.
-- Real Birth Company material remains link-only; no branding, course content, images or testimonials are copied.
 - Governance is informed by [NHS clinical decision-support guidance](https://www.england.nhs.uk/long-read/supporting-clinical-decisions-with-health-information-technology/), [DCB0129](https://digital.nhs.uk/data-and-information/information-standards/governance/latest-activity/standards-and-collections/dcb0129-clinical-risk-management-its-application-in-the-manufacture-of-health-it-systems/) and [MHRA software/AI guidance](https://www.gov.uk/government/publications/software-and-artificial-intelligence-ai-as-a-medical-device), without claiming certification or formal compliance.
 
 ## Local setup

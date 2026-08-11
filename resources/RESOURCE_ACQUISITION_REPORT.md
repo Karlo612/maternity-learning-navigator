@@ -21,7 +21,7 @@ Application packages are intentionally not installed yet. They will be pinned in
 
 `source_registry.csv` contains the authoritative links and licence/use decisions. `question_candidates.csv` contains only provenance-bearing candidate questions. No row is training-eligible yet. The Sorani rows were extracted from published Sorani resources but remain excluded pending review by a competent Sorani speaker.
 
-The Real Birth Company sources are link-only and supply high-level product context and topic taxonomy. No course text, images, testimonials, branding or proprietary learning material has been copied. The repository and eventual demo must state that they are not affiliated with or endorsed by The Real Birth Company or the NHS.
+The public source registry contains only the authoritative health, governance, accessibility and multilingual links used by the demonstration.
 
 ## Model decision
 
@@ -32,7 +32,6 @@ The initial product will not use an LLM to compose healthcare answers. It will r
 ## External gates that cannot be self-certified
 
 - A competent Sorani speaker must review meaning, terminology, right-to-left presentation and safety messaging before Sorani examples enter training, evaluation or the public interface.
-- Any reuse of Real Birth Company material beyond links and high-level public context requires written permission from the rights holder.
 - A qualified clinical-safety reviewer must review the hazard log, escalation wording, boundaries and representative test cases before a healthcare-facing release.
 - Cloud hosting, a domain and production secrets require an account owner and billing decision. No cloud service has been opened or charged.
 - Accessibility conformance requires manual keyboard, screen-reader, zoom, contrast and bidirectional-text testing in addition to automated checks.

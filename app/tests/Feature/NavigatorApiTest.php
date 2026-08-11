@@ -32,7 +32,7 @@ class NavigatorApiTest extends TestCase
     {
         $response = $this->getJson('/api/v1/resources');
 
-        $response->assertOk()->assertJsonCount(24, 'data');
+        $response->assertOk()->assertJsonCount(19, 'data');
         $response->assertJsonPath('data.0.organisation', fn (string $value) => $value !== '');
     }
 

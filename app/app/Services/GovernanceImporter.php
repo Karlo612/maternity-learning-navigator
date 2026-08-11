@@ -66,12 +66,14 @@ class GovernanceImporter
 
     private function importSources(string $path): void
     {
-        foreach ($this->readCsv($path) as $row) {
+        $rows = $this->readCsv($path);
+        foreach ($rows as $row) {
             Source::query()->updateOrCreate(
                 ['source_id' => $row['source_id']],
                 collect($row)->except('source_id')->all(),
             );
         }
+        Source::query()->whereNotIn('source_id', collect($rows)->pluck('source_id'))->delete();
     }
 
     private function importDatasetState(string $path): void

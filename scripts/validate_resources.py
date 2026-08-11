@@ -62,7 +62,6 @@ EXPECTED_CATEGORIES = {
 }
 APPROVED_DOMAINS = {
     "digital.nhs.uk",
-    "realbirthcompany.com",
     "www.england.nhs.uk",
     "www.gov.uk",
     "www.leedsth.nhs.uk",
@@ -121,14 +120,6 @@ def validate() -> None:
         verified = date.fromisoformat(source["last_verified"])
         if verified > date.today():
             raise ValueError(f"{source['source_id']}: last_verified is in the future")
-        if source["source_id"].startswith("RBC-") and not (
-            source["reuse_status"] == "proprietary_link_only"
-            or source["reuse_status"] == "policy"
-        ):
-            raise ValueError(
-                f"{source['source_id']}: Real Birth material must remain link-only"
-            )
-
     for question in questions:
         identifier = question["question_id"]
         if question["source_id"] not in source_ids:

@@ -10,4 +10,4 @@ This is an awareness artefact for a portfolio prototype, not a DCB0129 safety ca
 | Low-confidence model presented as certain | Over-trust | Language-specific thresholds and safe refusal | Calibration and OOD evaluation | Open — model not trained |
 | Sensitive text retained | Privacy impact | No raw-question or LIME-token fields; request bodies excluded from logs | Schema, API and log tests | Implemented locally |
 | Stale or unlicensed source content | Incorrect attribution or outdated information | Link-first source registry, reuse status and weekly verification report | Automated link/metadata check plus manual review | Partially implemented |
-| NHS or Real Birth endorsement implied | Misrepresentation | Independent identity, no logos, explicit non-affiliation notice | Release content review | Implemented locally |
+| NHS endorsement implied | Misrepresentation | Independent identity, no logos, explicit non-affiliation notice | Release content review | Implemented locally |

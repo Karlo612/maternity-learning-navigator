@@ -2,14 +2,13 @@
 
 ## Intended use
 
-The prototype routes general maternity education questions to authoritative public resources. It must not diagnose, assess symptoms, recommend treatment, predict outcomes, replace a clinician, or imply NHS or Real Birth Company endorsement.
+The prototype routes general maternity education questions to authoritative public resources. It must not diagnose, assess symptoms, recommend treatment, predict outcomes, replace a clinician, or imply NHS endorsement.
 
 ## Source hierarchy
 
 1. **NHS primary guidance with confirmed reuse terms** may support attributed question authoring and retrieval. Reproduced, unchanged NHS website text requires the attribution and refresh controls in the NHS website terms (including the stated seven-day maximum refresh interval, unless a different interval applies). Adapted content must use the OGL attribution rather than imply that the adaptation is NHS-authored. Translation is an adaptation under those terms.
 2. **NHS pages excluded from standard reuse terms**, NHS Trust materials, and third-party translated leaflets are link-only unless their individual licence explicitly permits reuse.
-3. **The Real Birth Company website** is used only to understand the public product context and topic taxonomy. Course, workshop, article, testimonial, image, branding and other proprietary content must not be copied into the dataset or interface without written permission.
-4. Blogs, forums, social media, commercial pregnancy sites and unattributed AI-generated text are not approved factual sources.
+3. Blogs, forums, social media, commercial pregnancy sites and unattributed AI-generated text are not approved factual sources.
 
 Logos, design styles, excluded NHS sites, third-party material, medical devices, and excluded images or videos are not reusable under the standard NHS website terms. The application must not imply NHS approval or endorsement. The source registry records a page as `OGL_subject_to_terms` only where its URL is outside the currently listed excluded sites; this is a project governance decision, not legal advice.
 
@@ -51,4 +50,4 @@ Before public deployment, the repository must contain an intended-use statement,
 
 ## Release gate
 
-No question or response is public or training-eligible until automated schema checks pass and `review_status=approved`. Sorani rows additionally require `translation_status=human_reviewed`. Real Birth Company material remains link-only unless written reuse permission is recorded.
+No question or response is public or training-eligible until automated schema checks pass and `review_status=approved`. Sorani rows additionally require `translation_status=human_reviewed`.

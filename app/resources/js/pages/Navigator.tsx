@@ -302,7 +302,7 @@ function PolicyPage({ type }: { type: 'privacy' | 'accessibility' }) {
 }
 
 function Footer() {
-    return <footer className="site-footer"><div className="container footer-row"><div><strong>Maternity Learning Navigator</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS or The Real Birth Company.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href="/evidence">Evidence</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
+    return <footer className="site-footer"><div className="container footer-row"><div><strong>Maternity Learning Navigator</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href="/evidence">Evidence</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
 }
 
 export default function Navigator() {
