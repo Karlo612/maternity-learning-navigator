@@ -12,9 +12,11 @@ The project routes only fixed, reviewed maternity-learning examples. It does **n
 
 > **Deployment state:** the three-service Railway deployment is live and verified over HTTPS in the EU region. Laravel, private FastAPI, persistent MySQL 8.4, REST, GraphQL and bilingual predicted-class LIME are working. `maternity.karlonahro.com` is registered in Railway but remains pending its DNS CNAME; backup/restore evidence is also still pending.
 
-## What a recruiter can inspect
+## Recruiter journey
 
-Within the application a recruiter can:
+The live site is deliberately product-first. Its primary navigation contains only **Navigator**, **API** and **GitHub**. Architecture, governance, testing and vacancy-alignment evidence live in this repository rather than competing with the demonstration interface.
+
+Within the live application a recruiter can:
 
 1. choose English or Kurdish Sorani and see full document LTR/RTL behavior;
 2. select one of 12 recruiter-visible fixed questions after checksum approval;
@@ -22,6 +24,8 @@ Within the application a recruiter can:
 4. receive MySQL-backed source cards with explicit language fallback;
 5. request a deterministic LIME explanation of the actual predicted class; and
 6. execute live REST and GraphQL calls from the in-browser API exhibit.
+
+Within this repository a recruiter can inspect the complete PHP controllers, MySQL migrations, GraphQL schema, Python model service, LIME implementation, governed data manifests, deployment topology and automated tests.
 
 If the signed content, model artifact or release sign-off drifts, the same journey releases no sample or model. That is intentional fail-closed behavior, not a simulated result.
 
@@ -37,10 +41,6 @@ Click any image to inspect it at full size.
   <tr>
     <td width="50%"><strong>Sorani routing and RTL</strong><br><a href="docs/screenshots/sorani.png"><img src="docs/screenshots/sorani.png" alt="Sorani routing and RTL interface"></a></td>
     <td width="50%"><strong>Live REST and GraphQL exhibit</strong><br><a href="docs/screenshots/api.png"><img src="docs/screenshots/api.png" alt="Live REST and GraphQL exhibit"></a></td>
-  </tr>
-  <tr>
-    <td width="50%"><strong>Traceable source directory</strong><br><a href="docs/screenshots/sources.png"><img src="docs/screenshots/sources.png" alt="Traceable source directory"></a></td>
-    <td width="50%"><strong>Technical evidence</strong><br><a href="docs/screenshots/evidence.png"><img src="docs/screenshots/evidence.png" alt="Technical and governance evidence"></a></td>
   </tr>
 </table>
 
@@ -186,7 +186,8 @@ Offline behavior is deliberately narrower than cloud behavior. The service worke
 | Reproducible app and model containers | Passing locally and in GitHub Actions |
 | MySQL 8.4 integration and persistent-volume topology | Passing locally and in GitHub Actions |
 | Offline PWA refusal and retained source metadata | Passing Playwright journey |
-| Railway private networking, managed persistence and custom domain | Pending live deployment verification |
+| Railway private networking and managed MySQL persistence | Live and verified over HTTPS in the EU region |
+| Custom `maternity.karlonahro.com` domain | Pending DNS CNAME configuration |
 
 ## Local setup
 
@@ -247,7 +248,7 @@ CI uses MySQL 8.4 integration tests, validates governed files, audits Composer/n
 | LIME / responsible AI | Actual predicted-class explanation, fixed seed, signed source spans, transient output and non-causal limitations |
 | Cloud and offline architecture | Three-service Railway design, private model/database networking and restricted PWA cache |
 | Full data lifecycle | Source registration, review states, checksum validation, leakage-safe families, training, fixture evaluation and artifact packaging |
-| UI and communication | 90-second recruiter journey, accessible explanation, API exhibit, evidence page and plain-language boundaries |
+| UI and communication | Product-first 90-second recruiter journey, accessible explanation, API exhibit, repository evidence and plain-language boundaries |
 | Healthcare/regulatory awareness | Educational intended purpose, explicit exclusions, hazard log and no clinical-validation or endorsement claims |
 
 ## Complementary portfolio evidence

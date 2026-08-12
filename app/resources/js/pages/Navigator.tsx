@@ -61,8 +61,7 @@ type Explanation = {
 type ConsoleResult = { request: string; status: number; elapsed: number; response: unknown };
 
 const navigation = [
-    ['/', 'navigator'], ['/sources', 'sources'], ['/how-it-works', 'how'],
-    ['/evidence', 'evidence'], ['/api-docs', 'api'],
+    ['/', 'navigator'], ['/api-docs', 'api'],
 ] as const;
 const repo = 'https://github.com/Karlo612/maternity-learning-navigator';
 
@@ -85,7 +84,7 @@ function AppHeader({ locale, setLocale }: { locale: Locale; setLocale: (value: L
             <a className="brand" href="/"><span className="brand-mark"><Route size={19} /></span><span>Explainable Maternity Information Router</span></a>
             <nav className="nav-links" aria-label="Primary navigation">{navigation.map(([href, key]) =>
                 <a className="nav-link" aria-current={path === href ? 'page' : undefined} href={href} key={href}>{copy.nav[key]}</a>,
-            )}</nav>
+            )}<a className="nav-link" href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub</a></nav>
             <label className="sr-only" htmlFor="language">Interface language</label>
             <select id="language" className="language-select" value={locale} onChange={event => setLocale(event.target.value as Locale)}>
                 <option value="en">English</option><option value="ckb">کوردی سۆرانی</option>
@@ -298,7 +297,7 @@ function PolicyPage({ type }: { type: 'privacy' | 'accessibility' }) {
 }
 
 function Footer() {
-    return <footer className="site-footer"><div className="container footer-row"><div><strong>Explainable Maternity Information Router</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href="/evidence">Evidence</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
+    return <footer className="site-footer"><div className="container footer-row"><div><strong>Explainable Maternity Information Router</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
 }
 
 export default function Navigator() {

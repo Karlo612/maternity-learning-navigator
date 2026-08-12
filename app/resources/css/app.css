@@ -34,7 +34,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, select:focus-visi
 .brand { display: flex; align-items: center; gap: .75rem; text-decoration: none; font-weight: 800; letter-spacing: -.02em; }
 .brand-mark { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 50% 50% 46% 54%; background: var(--aubergine); color: white; box-shadow: inset -7px -8px 0 rgba(47,119,117,.55); }
 .nav-links { margin-left: auto; display: flex; gap: .25rem; align-items: center; }
-.nav-link { padding: .58rem .76rem; border-radius: 999px; text-decoration: none; font-size: .92rem; color: var(--muted); }
+.nav-link { padding: .58rem .76rem; border-radius: 999px; text-decoration: none; font-size: .92rem; color: var(--muted); display: inline-flex; align-items: center; gap: .35rem; }
 .nav-link:hover, .nav-link[aria-current="page"] { background: white; color: var(--aubergine); }
 .language-select { border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: .55rem .85rem; color: var(--ink); }
 .status-strip { background: var(--aubergine); color: #fff; font-size: .88rem; }

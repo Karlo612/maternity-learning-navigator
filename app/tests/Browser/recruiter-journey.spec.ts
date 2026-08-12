@@ -18,6 +18,10 @@ async function runReleasedJourney(page: import('@playwright/test').Page, locale:
 
 test('English recruiter journey completes the approved demo', async ({ page }) => {
     await runReleasedJourney(page, 'en');
+    await expect(page.locator('nav a')).toHaveCount(3);
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Navigator' })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'API', exact: true })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'GitHub', exact: true })).toBeVisible();
 });
 
 test('Sorani recruiter journey uses full RTL and the same governed boundary', async ({ page }) => {
