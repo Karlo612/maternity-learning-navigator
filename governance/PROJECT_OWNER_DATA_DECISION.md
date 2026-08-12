@@ -1,6 +1,6 @@
 # Project-owner bilingual data decision
 
-- Project: Maternity Learning Navigator
+- Project: Explainable Maternity Information Router
 - Project owner: Karlo Nahro
 - Decision date: 11 August 2026
 - Dataset reviewed: `resources/question_candidates.csv`

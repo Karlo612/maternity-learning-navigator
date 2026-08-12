@@ -11,7 +11,7 @@ export default defineConfig({
             registerType: 'autoUpdate',
             scope: '/',
             manifest: {
-                name: 'Maternity Learning Navigator',
+                name: 'Explainable Maternity Information Router',
                 short_name: 'Learning Navigator',
                 description: 'Review-gated maternity learning resource routing.',
                 theme_color: '#432f44',

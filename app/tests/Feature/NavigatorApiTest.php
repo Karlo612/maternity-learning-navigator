@@ -43,7 +43,7 @@ class NavigatorApiTest extends TestCase
         $this->get('/api-docs')->assertOk();
         $this->get('/api/v1/openapi.json')
             ->assertOk()
-            ->assertJsonPath('info.title', 'Maternity Learning Navigator API');
+            ->assertJsonPath('info.title', 'Explainable Maternity Information Router API');
     }
 
     public function test_forwarded_https_scheme_is_trusted_for_cloud_asset_urls(): void

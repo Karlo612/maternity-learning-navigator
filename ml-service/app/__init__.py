@@ -1,1 +1,1 @@
-"""Maternity Learning Navigator model service."""
+"""Explainable Maternity Information Router model service."""

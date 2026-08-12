@@ -26,7 +26,7 @@ demo_registry = ModelRegistry(
     required_release_status="demo_approved",
 )
 app = FastAPI(
-    title="Maternity Learning Navigator model service",
+    title="Explainable Maternity Information Router model service",
     version="1.0.0-review-gated",
     docs_url=None,
     redoc_url=None,

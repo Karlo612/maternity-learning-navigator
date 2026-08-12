@@ -1,6 +1,8 @@
-# Maternity Learning Navigator
+# Explainable Maternity Information Router
 
-A recruiter-facing demonstration of a real PHP → Python → model → LIME → PHP → React request path, backed by MySQL source provenance and both REST and read-only GraphQL APIs.
+A bilingual portfolio demonstration that routes reviewed English and Sorani maternity-information questions to one of six educational topics and explains each match with LIME.
+
+Under the hood, Laravel/PHP orchestrates MySQL provenance, a private FastAPI model service, versioned REST endpoints and a read-only GraphQL API.
 
 **Live demonstration:** [app-production-fe71.up.railway.app](https://app-production-fe71.up.railway.app)
 
@@ -29,7 +31,7 @@ Click any image to inspect it at full size.
 
 <table>
   <tr>
-    <td width="50%"><strong>Approved English navigator</strong><br><a href="docs/screenshots/home.png"><img src="docs/screenshots/home.png" alt="Approved English navigator"></a></td>
+    <td width="50%"><strong>Approved English routing demo</strong><br><a href="docs/screenshots/home.png"><img src="docs/screenshots/home.png" alt="Approved English routing demo"></a></td>
     <td width="50%"><strong>Predicted-class LIME</strong><br><a href="docs/screenshots/lime.png"><img src="docs/screenshots/lime.png" alt="Predicted-class LIME explanation"></a></td>
   </tr>
   <tr>

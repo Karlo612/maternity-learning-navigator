@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Maternity Learning Navigator API",
+    "title": "Explainable Maternity Information Router API",
     "version": "1.1.0-curated-demo",
     "description": "A portfolio demonstration of PHP, MySQL, Python model serving and LIME. Curated endpoints accept only governed sample IDs. Production free-text routing remains review-gated. No endpoint provides diagnosis, triage, treatment or outcome prediction."
   },

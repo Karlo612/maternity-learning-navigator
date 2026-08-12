@@ -5,7 +5,7 @@ import {
     Database, ExternalLink, FileCheck2, GitBranch, HeartHandshake, Languages,
     LockKeyhole, Network, Play, Route, ShieldCheck, Sparkles, WifiOff,
 } from 'lucide-react';
-import { CategorySlug, Locale, categoryOrder, messages } from '../i18n';
+import { CategorySlug, Locale, messages } from '../i18n';
 
 type Source = {
     id: string;
@@ -82,7 +82,7 @@ function AppHeader({ locale, setLocale }: { locale: Locale; setLocale: (value: L
     return <>
         <div className="status-strip"><div className="container"><span className="status-dot" />{copy.status}</div></div>
         <header className="site-header"><div className="container nav-row">
-            <a className="brand" href="/"><span className="brand-mark"><Route size={19} /></span><span>Maternity Learning Navigator</span></a>
+            <a className="brand" href="/"><span className="brand-mark"><Route size={19} /></span><span>Explainable Maternity Information Router</span></a>
             <nav className="nav-links" aria-label="Primary navigation">{navigation.map(([href, key]) =>
                 <a className="nav-link" aria-current={path === href ? 'page' : undefined} href={href} key={href}>{copy.nav[key]}</a>,
             )}</nav>
@@ -174,7 +174,7 @@ function DemoPanel({ locale, online }: { locale: Locale; online: boolean }) {
     };
 
     return <div className="router-card">
-        <div className="demo-kicker"><span><CheckCircle2 size={15} />{copy.curatedDemo}</span><span><code>{reviewState}</code></span></div>
+        <div className="demo-kicker"><span><CheckCircle2 size={15} /><code>{reviewState}</code></span></div>
         <h2>{copy.demoTitle}</h2><p>{copy.demoCopy}</p>
         {samples.length > 0 ? <>
             <fieldset className="sample-list"><legend>{copy.chooseSample}</legend>{samples.map(sample =>
@@ -194,17 +194,13 @@ function DemoPanel({ locale, online }: { locale: Locale; online: boolean }) {
             <button className="secondary-button explain-button" type="button" onClick={explain} disabled={explaining}>{explaining ? copy.loadingExplanation : <><Sparkles size={16} />{copy.whyMatch}</>}</button>
         </section>}
         {explanation && <ExplanationView explanation={explanation} locale={locale} />}
-        <div className="locked-free-text"><LockKeyhole size={18} /><div><strong>{copy.freeTextTitle}</strong><p>{copy.freeTextCopy}</p><textarea disabled aria-label={copy.freeTextTitle} placeholder={copy.freeTextPlaceholder} /></div></div>
-        <p className="demo-notice">{copy.demoNotice}</p>
+        <div className="locked-free-text"><LockKeyhole size={18} /><div><strong>{copy.freeTextTitle}</strong><p>{copy.freeTextCopy}</p></div></div>
     </div>;
 }
 
 function Home({ locale, online }: { locale: Locale; online: boolean }) {
     const copy = messages[locale];
-    return <main><div className="container hero"><div><span className="eyebrow"><Sparkles size={15} />{copy.eyebrow}</span><h1>{copy.heroTitle}</h1><p className="hero-copy">{copy.heroCopy}</p><div className="trust-row"><span className="trust-chip"><ShieldCheck size={15} />{copy.noDiagnosis}</span><span className="trust-chip"><Database size={15} />{copy.noStorage}</span><span className="trust-chip"><FileCheck2 size={15} />{copy.provenance}</span></div></div><DemoPanel locale={locale} online={online} /></div>
-        <section className="section"><div className="container"><div className="section-heading"><div><span className="eyebrow">Six bounded outputs</span><h2>Educational topics, never clinical answers</h2></div><p>Each result resolves through MySQL to registered source metadata. Sorani questions transparently link to English-only sources where no reviewed Sorani equivalent is registered.</p></div><div className="category-grid">{categoryOrder.map((slug, index) => <a className="category-card" href={`/sources?category=${slug}&locale=${locale}`} key={slug}><span className="category-number">0{index + 1}</span><h3>{copy.categories[slug].label}</h3><p>{copy.categories[slug].description}</p><span className="source-link">{copy.openOriginal} →</span></a>)}</div></div></section>
-        <section className="section"><div className="container"><div className="section-heading"><div><span className="eyebrow">Recruiter evidence</span><h2>One visible, testable request path</h2></div><p>The demonstration exercises real PHP, MySQL, private Python inference and predicted-class LIME without accepting unrestricted maternity text.</p></div><div className="evidence-grid"><div className="evidence-card"><Code2 /><h3>Laravel public boundary</h3><p>Sample IDs enter a versioned REST controller; GraphQL remains read-only.</p></div><div className="evidence-card"><Network /><h3>FastAPI model boundary</h3><p>A private authenticated service loads only a checksum-matched curated-demo artifact.</p></div><div className="evidence-card"><Sparkles /><h3>Correct local explanation</h3><p>LIME receives the actual predicted class, fixed seed 41 and returns transient source spans.</p></div></div></div></section>
-    </main>;
+    return <main><div className="container hero"><div><span className="eyebrow"><Languages size={15} />{copy.eyebrow}</span><h1>Explainable Maternity Information Router</h1><div className="trust-row"><span className="trust-chip"><ShieldCheck size={15} />{copy.noDiagnosis}</span><span className="trust-chip"><Database size={15} />{copy.noStorage}</span><span className="trust-chip"><FileCheck2 size={15} />{copy.provenance}</span></div></div><DemoPanel locale={locale} online={online} /></div></main>;
 }
 
 function Sources({ locale }: { locale: Locale }) {
@@ -302,7 +298,7 @@ function PolicyPage({ type }: { type: 'privacy' | 'accessibility' }) {
 }
 
 function Footer() {
-    return <footer className="site-footer"><div className="container footer-row"><div><strong>Maternity Learning Navigator</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href="/evidence">Evidence</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
+    return <footer className="site-footer"><div className="container footer-row"><div><strong>Explainable Maternity Information Router</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href="/evidence">Evidence</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
 }
 
 export default function Navigator() {
@@ -326,5 +322,5 @@ export default function Navigator() {
                     : path === '/privacy' ? <PolicyPage type="privacy" />
                         : path === '/accessibility' ? <PolicyPage type="accessibility" />
                             : <Home locale={locale} online={online} />, [path, locale, online]);
-    return <div className="app-shell" dir={messages[locale].direction}><Head title="Maternity Learning Navigator" /><AppHeader locale={locale} setLocale={setLocale} />{content}<Footer /></div>;
+    return <div className="app-shell" dir={messages[locale].direction}><Head title="Explainable Maternity Information Router" /><AppHeader locale={locale} setLocale={setLocale} />{content}<Footer /></div>;
 }
