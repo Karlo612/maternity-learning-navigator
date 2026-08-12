@@ -29,6 +29,10 @@ Within this repository a recruiter can inspect the complete PHP controllers, MyS
 
 If the signed content, model artifact or release sign-off drifts, the same journey releases no sample or model. That is intentional fail-closed behavior, not a simulated result.
 
+### Sorani language scope
+
+Sorani localisation covers the reviewed demo journey, fixed questions, category and result text, LIME interpretation and full-page RTL presentation. The engineering API playground, GitHub documentation, Privacy and Accessibility pages, technical identifiers and external source titles remain in English. Sorani mode labels those destinations as English and displays this boundary explicitly; it does not imply full translation parity.
+
 ## Product walkthrough
 
 Click any image to inspect it at full size.

@@ -83,14 +83,22 @@ function AppHeader({ locale, setLocale }: { locale: Locale; setLocale: (value: L
         <header className="site-header"><div className="container nav-row">
             <a className="brand" href="/"><span className="brand-mark"><Route size={19} /></span><span>Explainable Maternity Information Router</span></a>
             <nav className="nav-links" aria-label="Primary navigation">{navigation.map(([href, key]) =>
-                <a className="nav-link" aria-current={path === href ? 'page' : undefined} href={href} key={href}>{copy.nav[key]}</a>,
-            )}<a className="nav-link" href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub</a></nav>
+                <a className="nav-link" aria-current={path === href ? 'page' : undefined} href={href} key={href}>{copy.nav[key]}{locale === 'ckb' && href === '/api-docs' ? <span className="language-label">English</span> : null}</a>,
+            )}<a className="nav-link" href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub{locale === 'ckb' ? <span className="language-label">English</span> : null}</a></nav>
             <label className="sr-only" htmlFor="language">Interface language</label>
             <select id="language" className="language-select" value={locale} onChange={event => setLocale(event.target.value as Locale)}>
                 <option value="en">English</option><option value="ckb">کوردی سۆرانی</option>
             </select>
         </div></header>
     </>;
+}
+
+function LanguageCoverageNotice({ locale }: { locale: Locale }) {
+    if (locale !== 'ckb') return null;
+    return <div className="container language-coverage" role="note" lang="en" dir="ltr">
+        <Languages size={18} aria-hidden="true" />
+        <div><strong>Sorani language coverage</strong><p>The reviewed demo journey and questions are available in Sorani. The API playground, GitHub repository, Privacy and Accessibility pages, technical identifiers, and external source titles remain in English.</p></div>
+    </div>;
 }
 
 function ExplanationView({ explanation, locale }: { explanation: Explanation; locale: Locale }) {
@@ -206,7 +214,7 @@ function Sources({ locale }: { locale: Locale }) {
     const [sources, setSources] = useState<Source[]>([]);
     const category = new URLSearchParams(window.location.search).get('category');
     useEffect(() => { jsonRequest(`/api/v1/resources?locale=${locale}${category ? `&category=${encodeURIComponent(category)}` : ''}`).then(({ body }) => setSources(body.data ?? [])); }, [category, locale]);
-    return <main className="container"><div className="page-hero"><span className="eyebrow"><BookOpen size={15} />Provenance first</span><h1>Registered source directory</h1><p>Links, language, use status and verification dates are shown without reproducing clinical prose or implying unavailable translations.</p></div><div className="source-grid">{sources.map(source => <article className="source-card" key={source.id}><span className="org">{source.organisation}</span><h3>{source.title}</h3><div className="source-meta"><span className="tag">{source.language}</span>{source.reuse_status && <span className="tag">{source.reuse_status.replaceAll('_', ' ')}</span>}<span className="tag">Checked {source.last_verified}</span></div>{source.fallback_used && <p className="availability-note">{source.availability_note}</p>}<a className="source-link" href={source.url} target="_blank" rel="noreferrer">Open original <ExternalLink size={13} /></a></article>)}</div></main>;
+    return <main className="container" lang="en" dir="ltr"><div className="page-hero"><span className="eyebrow"><BookOpen size={15} />Provenance first</span><h1>Registered source directory</h1><p>Links, language, use status and verification dates are shown without reproducing clinical prose or implying unavailable translations.</p></div><div className="source-grid">{sources.map(source => <article className="source-card" key={source.id}><span className="org">{source.organisation}</span><h3>{source.title}</h3><div className="source-meta"><span className="tag">{source.language}</span>{source.reuse_status && <span className="tag">{source.reuse_status.replaceAll('_', ' ')}</span>}<span className="tag">Checked {source.last_verified}</span></div>{source.fallback_used && <p className="availability-note">{source.availability_note}</p>}<a className="source-link" href={source.url} target="_blank" rel="noreferrer">Open original <ExternalLink size={13} /></a></article>)}</div></main>;
 }
 
 function Evidence() {
@@ -218,7 +226,7 @@ function Evidence() {
         ['MySQL migration', 'app/database/migrations/2026_08_11_000002_add_curated_demo_tables.php'],
         ['Governance validator', 'scripts/validate_resources.py'],
     ];
-    return <main className="container"><div className="page-hero"><span className="eyebrow"><FileCheck2 size={15} />Evidence before claims</span><h1>Technical and governance evidence</h1><p>The curated route demonstrates the architecture. It does not establish general model accuracy, clinical validity or approval.</p></div>
+    return <main className="container" lang="en" dir="ltr"><div className="page-hero"><span className="eyebrow"><FileCheck2 size={15} />Evidence before claims</span><h1>Technical and governance evidence</h1><p>The curated route demonstrates the architecture. It does not establish general model accuracy, clinical validity or approval.</p></div>
         <div className="evidence-grid"><div className="evidence-card"><div className="metric">144</div><div className="metric-label">Checksum-approved demo samples</div></div><div className="evidence-card"><div className="metric">12 + 12</div><div className="metric-label">Passing visible + hidden fixtures</div></div><div className="evidence-card"><div className="metric">&lt;0.1s</div><div className="metric-label">Local-container LIME p95</div></div></div>
         <section className="section two-column"><div className="content-card"><h2>What fixture checks prove</h2><p>All fixed visible and hidden examples return their reviewed category. The local single-user container check measured classification p95 at 3.7 ms and LIME p95 at 84 ms across repeated calls.</p><p className="notice">These are release-fixture and local engineering measurements, not macro-F1, calibration, clinical validity or maternity-domain performance.</p></div><div className="locked-panel"><h3><LockKeyhole size={19} />Production route still locked</h3><p>The 600-row bilingual training set, 120 evaluation fixtures, independent clinical-safety review and XLM-R comparison remain follow-on gates.</p></div></section>
         <section className="section"><div className="section-heading"><div><span className="eyebrow">Inspect the implementation</span><h2>Evidence linked to code</h2></div></div><div className="source-grid">{links.map(([label, path]) => <a className="evidence-code-link" href={`${repo}/blob/main/${path}`} target="_blank" rel="noreferrer" key={path}><Code2 size={18} /><span><strong>{label}</strong><code>{path}</code></span><ExternalLink size={15} /></a>)}</div></section>
@@ -234,7 +242,7 @@ function Evidence() {
 }
 
 function HowItWorks() {
-    return <main className="container"><div className="page-hero"><span className="eyebrow"><Network size={15} />Bounded by design</span><h1>Follow one request end to end</h1><p>The curated and production registries are deliberately separate: a portfolio fixture can never unlock public free text.</p></div><div className="flow-strip"><div><span>1</span><strong>React sends sample ID</strong><p>No browser-supplied question enters the demo contract.</p></div><ArrowRight /><div><span>2</span><strong>Laravel retrieves approved text</strong><p>MySQL provides category, locale and source provenance.</p></div><ArrowRight /><div><span>3</span><strong>FastAPI routes</strong><p>The private curated registry verifies mode and artifact checksum.</p></div><ArrowRight /><div><span>4</span><strong>LIME explains</strong><p>Predicted-class weights return through PHP and are discarded.</p></div></div><section className="section"><div className="two-column"><div className="content-card"><h2>Persisted</h2><ul><li>Random request ID and curated-demo mode</li><li>Governed sample, category and model references</li><li>Confidence band and latency</li></ul></div><div className="content-card"><h2>Never persisted</h2><ul><li>Arbitrary user maternity text</li><li>LIME tokens or occurrence spans</li><li>Clinical symptoms or personal data</li><li>Free-text feedback</li></ul></div></div></section></main>;
+    return <main className="container" lang="en" dir="ltr"><div className="page-hero"><span className="eyebrow"><Network size={15} />Bounded by design</span><h1>Follow one request end to end</h1><p>The curated and production registries are deliberately separate: a portfolio fixture can never unlock public free text.</p></div><div className="flow-strip"><div><span>1</span><strong>React sends sample ID</strong><p>No browser-supplied question enters the demo contract.</p></div><ArrowRight /><div><span>2</span><strong>Laravel retrieves approved text</strong><p>MySQL provides category, locale and source provenance.</p></div><ArrowRight /><div><span>3</span><strong>FastAPI routes</strong><p>The private curated registry verifies mode and artifact checksum.</p></div><ArrowRight /><div><span>4</span><strong>LIME explains</strong><p>Predicted-class weights return through PHP and are discarded.</p></div></div><section className="section"><div className="two-column"><div className="content-card"><h2>Persisted</h2><ul><li>Random request ID and curated-demo mode</li><li>Governed sample, category and model references</li><li>Confidence band and latency</li></ul></div><div className="content-card"><h2>Never persisted</h2><ul><li>Arbitrary user maternity text</li><li>LIME tokens or occurrence spans</li><li>Clinical symptoms or personal data</li><li>Free-text feedback</li></ul></div></div></section></main>;
 }
 
 const graphQueries = {
@@ -276,7 +284,7 @@ function ApiDocs() {
     };
     const copySnippet = async () => { await navigator.clipboard.writeText(snippets[snippet]); setCopied(true); setTimeout(() => setCopied(false), 1200); };
 
-    return <main className="container"><div className="page-hero"><span className="eyebrow"><Braces size={15} />Live engineering exhibit</span><h1>Execute REST and GraphQL here</h1><p>Every control below calls the running application. Inspect the request, status, timing and formatted response without installing an API client.</p></div>
+    return <main className="container" lang="en" dir="ltr"><div className="page-hero"><span className="eyebrow"><Braces size={15} />Live engineering exhibit</span><h1>Execute REST and GraphQL here</h1><p>Every control below calls the running application. Inspect the request, status, timing and formatted response without installing an API client.</p></div>
         <div className="api-layout"><aside className="api-controls"><h2>REST</h2>{[
             ['health', 'GET', '/api/v1/health', undefined],
             ['resources', 'GET', '/api/v1/resources?category=antenatal-appointments&locale=ckb', undefined],
@@ -293,11 +301,12 @@ function ApiDocs() {
 
 function PolicyPage({ type }: { type: 'privacy' | 'accessibility' }) {
     const privacy = type === 'privacy';
-    return <main className="container"><div className="page-hero"><span className="eyebrow">{privacy ? <ShieldCheck size={15} /> : <HeartHandshake size={15} />}{privacy ? 'Data minimisation' : 'Inclusive by default'}</span><h1>{privacy ? 'Privacy and intended use' : 'Accessibility statement'}</h1><p>{privacy ? 'The fixed demo stores only derived telemetry and a reference to governed application content.' : 'The interface targets WCAG 2.2 AA and includes explicit testing for RTL and bidirectional text.'}</p></div><div className="two-column">{privacy ? <><div className="content-card"><h2>What may be stored</h2><ul><li>Random request ID and curated-demo mode</li><li>Governed sample, category and model references</li><li>Confidence band, locale and latency</li><li>Fixed-choice helpfulness feedback</li></ul></div><div className="content-card"><h2>What is not stored</h2><ul><li>Arbitrary user questions or LIME tokens</li><li>Names, contact details or symptoms</li><li>Patient records or special-category datasets</li><li>Free-text feedback</li></ul></div></> : <><div className="content-card"><h2>Implemented</h2><ul><li>Keyboard-visible focus and semantic controls</li><li>Reduced-motion support and responsive zoom</li><li>Text plus symbols for LIME direction</li><li>Full-page RTL and original-order Sorani spans</li></ul></div><div className="content-card"><h2>Release gate</h2><p>Automated checks are not certification. Manual keyboard, zoom, contrast, screen-reader and Sorani bidirectional-text checks are required before public indexing.</p></div></>}</div></main>;
+    return <main className="container" lang="en" dir="ltr"><div className="page-hero"><span className="eyebrow">{privacy ? <ShieldCheck size={15} /> : <HeartHandshake size={15} />}{privacy ? 'Data minimisation' : 'Inclusive by default'}</span><h1>{privacy ? 'Privacy and intended use' : 'Accessibility statement'}</h1><p>{privacy ? 'The fixed demo stores only derived telemetry and a reference to governed application content.' : 'The interface targets WCAG 2.2 AA and includes explicit testing for RTL and bidirectional text.'}</p></div><div className="two-column">{privacy ? <><div className="content-card"><h2>What may be stored</h2><ul><li>Random request ID and curated-demo mode</li><li>Governed sample, category and model references</li><li>Confidence band, locale and latency</li><li>Fixed-choice helpfulness feedback</li></ul></div><div className="content-card"><h2>What is not stored</h2><ul><li>Arbitrary user questions or LIME tokens</li><li>Names, contact details or symptoms</li><li>Patient records or special-category datasets</li><li>Free-text feedback</li></ul></div></> : <><div className="content-card"><h2>Implemented</h2><ul><li>Keyboard-visible focus and semantic controls</li><li>Reduced-motion support and responsive zoom</li><li>Text plus symbols for LIME direction</li><li>Full-page RTL and original-order Sorani spans</li></ul></div><div className="content-card"><h2>Release gate</h2><p>Automated checks are not certification. Manual keyboard, zoom, contrast, screen-reader and Sorani bidirectional-text checks are required before public indexing.</p></div></>}</div></main>;
 }
 
-function Footer() {
-    return <footer className="site-footer"><div className="container footer-row"><div><strong>Explainable Maternity Information Router</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy</a><a href="/accessibility">Accessibility</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository</a></div></div></footer>;
+function Footer({ locale }: { locale: Locale }) {
+    const english = locale === 'ckb' ? ' · English' : '';
+    return <footer className="site-footer"><div className="container footer-row"><div><strong>Explainable Maternity Information Router</strong><br />Independent portfolio demonstration by Karlo Nahro.<br />Not affiliated with or endorsed by the NHS.</div><div className="footer-links"><a href="/privacy">Privacy{english}</a><a href="/accessibility">Accessibility{english}</a><a href={repo} target="_blank" rel="noreferrer"><GitBranch size={14} />GitHub repository{english}</a></div></div></footer>;
 }
 
 export default function Navigator() {
@@ -321,5 +330,5 @@ export default function Navigator() {
                     : path === '/privacy' ? <PolicyPage type="privacy" />
                         : path === '/accessibility' ? <PolicyPage type="accessibility" />
                             : <Home locale={locale} online={online} />, [path, locale, online]);
-    return <div className="app-shell" dir={messages[locale].direction}><Head title="Explainable Maternity Information Router" /><AppHeader locale={locale} setLocale={setLocale} />{content}<Footer /></div>;
+    return <div className="app-shell" dir={messages[locale].direction}><Head title="Explainable Maternity Information Router" /><AppHeader locale={locale} setLocale={setLocale} /><LanguageCoverageNotice locale={locale} />{content}<Footer locale={locale} /></div>;
 }

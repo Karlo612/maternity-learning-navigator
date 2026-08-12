@@ -26,6 +26,12 @@ test('English recruiter journey completes the approved demo', async ({ page }) =
 
 test('Sorani recruiter journey uses full RTL and the same governed boundary', async ({ page }) => {
     await runReleasedJourney(page, 'ckb');
+    await expect(page.getByText('Sorani language coverage', { exact: true })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: /API.*English/ })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: /GitHub.*English/ })).toBeVisible();
+    await page.getByRole('navigation').getByRole('link', { name: /API.*English/ }).click();
+    await expect(page.locator('main')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('main')).toHaveAttribute('dir', 'ltr');
 });
 
 test('the API exhibit executes live REST and GraphQL calls', async ({ page }) => {
