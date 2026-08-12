@@ -116,9 +116,7 @@ jobs:
       - name: Build the deployable containers
         run: docker compose build app ml
       - name: Start the private service topology
-        run: docker compose up --detach mysql ml app
-      - name: Apply the schema and import governed records
-        run: docker compose exec -T app php artisan migrate --force && docker compose exec -T app php artisan db:seed --force
+        run: docker compose up --detach --wait mysql ml app
       - name: Smoke-test public and private boundaries
         run: |
           curl --fail --silent --show-error http://127.0.0.1:8080/api/v1/health
