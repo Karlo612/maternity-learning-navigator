@@ -47,8 +47,9 @@ test('offline mode never enables a model call', async ({ page, context }) => {
     await context.setOffline(true);
     await page.evaluate(() => window.dispatchEvent(new Event('offline')));
     const runButton = page.getByRole('button', { name: /Run the governed demonstration/ });
-    if (await runButton.count()) await expect(runButton).toBeDisabled();
-    await expect(page.getByLabel('Public free text remains locked')).toBeDisabled();
+    await expect(runButton).toBeDisabled();
+    await expect(page.locator('textarea')).toHaveCount(0);
+    await expect(page.getByText('Public free text remains locked', { exact: true })).toBeVisible();
     await context.setOffline(false);
 });
 
