@@ -1,4 +1,6 @@
-# Release checklist
+# Production free-text release checklist
+
+These gates apply to unrestricted user-entered maternity questions and the separately registered production model. They do not describe or unlock the fixed-sample curated portfolio demonstration.
 
 - [ ] Governance validator passes
 - [ ] 600 bilingual examples approved with leakage-safe family identifiers
@@ -15,4 +17,4 @@
 - [ ] Deployment smoke test and rollback tested
 - [ ] Independent status and non-affiliation statements visible
 
-Until every applicable item passes, keep `FREE_TEXT_ENABLED=false`, `noindex` metadata enabled and the repository/deployment private.
+Until every applicable item passes, keep `FREE_TEXT_ENABLED=false` and the production model registry unserved. The checksum-approved fixed-sample demonstration may be public and indexable because it accepts sample identifiers only and cannot bypass these gates.

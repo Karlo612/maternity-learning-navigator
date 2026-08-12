@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#432f44">
     <meta name="description" content="A review-gated multilingual maternity learning resource router with transparent AI evidence.">
-    <meta name="robots" content="noindex,nofollow">
+    <meta name="robots" content="index,follow">
     <link rel="icon" href="/navigator-icon.svg" type="image/svg+xml">
     <title inertia>{{ config('app.name', 'Maternity Learning Navigator') }}</title>
     @viteReactRefresh

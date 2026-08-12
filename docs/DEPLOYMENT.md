@@ -2,7 +2,7 @@
 
 ## Evidence boundary
 
-The repository currently proves that the deployable topology builds and passes integration, browser and accessibility checks in Docker Compose and GitHub Actions. Railway operation, managed persistence, backups, custom-domain routing and rollback remain pending until a live release is verified. This document must be updated with deployment identifiers and test timestamps before those capabilities are claimed as completed experience.
+The deployable topology builds and passes integration, browser and accessibility checks in Docker Compose and GitHub Actions. A Railway release was verified on 12 August 2026 at [app-production-fe71.up.railway.app](https://app-production-fe71.up.railway.app). This record claims only the checks listed as passed below: custom-domain DNS, backup/restore evidence and a tested rollback target remain pending.
 
 ## Service topology
 
@@ -43,12 +43,14 @@ The PWA caches the compiled application shell and reviewed source-directory meta
 
 | Check | Result |
 | --- | --- |
-| Laravel deployment | Pending |
-| Private FastAPI deployment | Pending |
-| Private MySQL persistence | Pending |
-| Migration and governed import | Pending |
-| REST, GraphQL and LIME smoke tests | Pending |
-| English, Sorani RTL and offline browser tests | Pending |
-| HTTPS custom domain | Pending |
+| GitHub Actions release gates | Passed: governance, MySQL/PHP, Python/LIME, secret scan, containers, REST/GraphQL smoke tests, Playwright RTL/offline and accessibility (`31549357234`) |
+| Laravel deployment | Passed on Railway EU; deployment `1e1c6a0b-46d5-4f15-b796-c4cc0273891d`, commit `186c556` |
+| Private FastAPI deployment | Passed; reachable from Laravel over Railway private DNS and not assigned a public domain |
+| Private MySQL persistence | Passed; pinned MySQL 8.4 with a private hostname and persistent `/var/lib/mysql` volume |
+| Migration and governed import | Passed; startup migration/import completed and health reported the database available with 12 visible approved samples |
+| REST, GraphQL and LIME smoke tests | Passed over public HTTPS in English and Sorani; predicted and explained classes matched with seed 41 |
+| English and Sorani RTL browser journeys | Passed; Sorani set `lang="ckb"` and `dir="rtl"`; offline behavior remains covered by the automated browser suite |
+| Railway HTTPS domain | Passed: `app-production-fe71.up.railway.app` |
+| Custom domain | Pending DNS: `maternity.karlonahro.com` is registered in Railway and awaits the `maternity` CNAME update |
 | Backup/restore evidence | Pending |
 | Rollback target | Pending |

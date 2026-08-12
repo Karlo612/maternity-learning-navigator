@@ -2,11 +2,13 @@
 
 A recruiter-facing demonstration of a real PHP → Python → model → LIME → PHP → React request path, backed by MySQL source provenance and both REST and read-only GraphQL APIs.
 
+**Live demonstration:** [app-production-fe71.up.railway.app](https://app-production-fe71.up.railway.app)
+
 The project routes only fixed, reviewed maternity-learning examples. It does **not** diagnose, triage, recommend treatment, predict outcomes, translate clinical advice or generate healthcare answers. It is an independent portfolio project and is not affiliated with or endorsed by the NHS.
 
 > **Current release state:** the exact-checksum bilingual curated demo is approved and its model artifact is built into the private FastAPI image. Unrestricted free text remains locked until its separate production gates pass.
 
-> **Deployment state:** the complete three-container topology passes CI and local smoke tests. The public Railway deployment and custom domain are the remaining operational release steps; no cloud-operation claim is made until those checks pass.
+> **Deployment state:** the three-service Railway deployment is live and verified over HTTPS in the EU region. Laravel, private FastAPI, persistent MySQL 8.4, REST, GraphQL and bilingual predicted-class LIME are working. `maternity.karlonahro.com` is registered in Railway but remains pending its DNS CNAME; backup/restore evidence is also still pending.
 
 ## What a recruiter can inspect
 
