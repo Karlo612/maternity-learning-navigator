@@ -9,6 +9,8 @@ use App\Models\ReviewSignoff;
 use App\Models\RoutingEvent;
 use App\Services\GovernanceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
@@ -42,6 +44,20 @@ class NavigatorApiTest extends TestCase
         $this->get('/api/v1/openapi.json')
             ->assertOk()
             ->assertJsonPath('info.title', 'Maternity Learning Navigator API');
+    }
+
+    public function test_forwarded_https_scheme_is_trusted_for_cloud_asset_urls(): void
+    {
+        $request = Request::create('http://navigator.test');
+        $request->server->set('REMOTE_ADDR', '10.0.0.10');
+        $request->headers->set('X-Forwarded-Proto', 'https');
+
+        $scheme = app(TrustProxies::class)->handle(
+            $request,
+            fn (Request $proxiedRequest) => $proxiedRequest->getScheme(),
+        );
+
+        $this->assertSame('https', $scheme);
     }
 
     public function test_openapi_documents_every_live_demo_contract_and_failure_state(): void
